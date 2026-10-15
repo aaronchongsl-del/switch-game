@@ -186,12 +186,6 @@
       var den = r.pick(d < 5 ? [2, 3, 4, 5] : [3, 4, 5, 6, 8, 10]), num = r.int(1, den - 1), k = r.int(2, 12);
       return { ask: 'Work it out', big: num + '/' + den + ' of ' + (den * k), kind: 'num', answer: String(num * k) };
     }),
-    V('mean', 3, 7, function (r, d) {
-      var n = r.pick([3, 4, 5]), m = r.int(30, 60 + d * 5), vals = [], sum = 0, i, dev;
-      for (i = 0; i < n - 1; i++) { dev = r.int(-6, 6); vals.push(m + dev); sum += dev; }
-      vals.push(m - sum);
-      return { ask: 'What is the average (mean) of these numbers?', big: r.shuffle(vals).join(', '), kind: 'num', answer: String(m) };
-    }),
     V('elapsed', 3, 8, function (r, d) {
       var h1 = r.int(1, 11), m1 = 5 * r.int(0, 11), dur = r.pick(d < 5 ? [25, 35, 40, 50, 65, 70, 85] : [95, 105, 110, 125, 135, 145, 155, 170]);
       var tot = h1 * 60 + m1 + dur, h2 = Math.floor(tot / 60) % 12 || 12, m2 = tot % 60;

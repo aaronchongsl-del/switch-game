@@ -4,6 +4,8 @@ var $=function(id){return document.getElementById(id)};
 var TYPES={maths:{n:'Maths',c:'var(--maths)'},memory:{n:'Memory',c:'var(--memory)'},logic:{n:'Logic',c:'var(--logic)'},word:{n:'Words',c:'var(--word)'},space:{n:'Spatial',c:'var(--space)'},typing:{n:'Typing',c:'var(--typing)'}};
 var KEYS=['maths','memory','logic','word','space','typing'];
 var VIS=window.SwitchVisuals;
+var UNLOCK={maths:1,word:1,memory:2,logic:3,space:4,typing:5};
+function unlocked(k){return lvlOf(db.xp)>=UNLOCK[k]}
 function ico(k){return VIS?VIS.icon(k):''}
 var RUN=90, PENALTY=2;
 
@@ -256,7 +258,7 @@ function closeSheet(){$('sheet').hidden=true;if(g){g.menu=false;g.last=performan
 
 /* ---------- start screen ---------- */
 function renderStart(){
-  $('cats').innerHTML=KEYS.map(function(k){return '<div class="cat" style="--c:'+TYPES[k].c+'">'+ico(k)+TYPES[k].n+'</div>'}).join('');
+  $('cats').innerHTML=KEYS.map(function(k){var lk=!unlocked(k);return '<div class="cat'+(lk?' locked':'')+'" style="--c:'+TYPES[k].c+'">'+ico(k)+TYPES[k].n+(lk?'<small>Level '+UNLOCK[k]+'</small>':'')+'</div>'}).join('');
   var l=lvlOf(db.xp),lo=xpFor(l),hi=xpFor(l+1);
   $('lvl').textContent='Level '+l+' · '+rankName(l);$('xpTxt').textContent=db.xp+' / '+hi+' XP';
   $('xpBar').style.width=Math.round((db.xp-lo)/(hi-lo)*100)+'%';
@@ -275,7 +277,7 @@ function renderRatings(){
   var weakest=null,wr=101;
   KEYS.forEach(function(k){var st=db.stats[k],n=st.ok+st.bad;if(n>=10){var a=st.ok/n*100;if(a<wr){wr=a;weakest=k}}});
   $('ratings').innerHTML=KEYS.map(function(k){var st=db.stats[k],n=st.ok+st.bad,pc=n?Math.round(st.ok/n*100)+'%':'-';
-    return '<button class="rate" data-train="'+k+'" style="--c:'+TYPES[k].c+'"><span class="rn">'+ico(k)+TYPES[k].n+'</span><b class="mono">'+pc+'</b><span class="rs">'+(k===weakest?'Weakest. ':'')+'Train</span></button>'}).join('');
+    var lk=!unlocked(k);return '<button class="rate'+(lk?' locked':'')+'" '+(lk?'disabled':'data-train="'+k+'"')+' style="--c:'+TYPES[k].c+'"><span class="rn">'+ico(k)+TYPES[k].n+'</span><b class="mono">'+pc+'</b><span class="rs">'+(lk?'Level '+UNLOCK[k]:(k===weakest?'Weakest. ':'')+'Train')+'</span></button>'}).join('');
 }
 var boardTab='all';
 function localRows(){
@@ -314,7 +316,7 @@ function startRun(mode,focus){
 }
 function drawType(){
   if(g.focus)return g.focus;
-  if(!g.bag.length)g.bag=g.order.shuffle(KEYS);
+  if(!g.bag.length)g.bag=g.order.shuffle(g.mode==='daily'?KEYS:KEYS.filter(unlocked));
   if(g.bag[0]===g.type&&g.bag.length>1)g.bag.push(g.bag.shift());
   return g.bag.shift();
 }
@@ -510,7 +512,7 @@ function finish(){
   $('rStamp').hidden=!nb;
   $('rLvl').textContent='Level '+lvBefore+' · '+rankName(lvBefore);$('rXp').textContent=xpBefore+' XP';
   var xb=$('rXpBar');xb.style.transition='none';xb.style.width=Math.round(oldPct*100)+'%';
-  $('rTypes').innerHTML=KEYS.map(function(k,i){var p=g.per[k],n=p.ok+p.bad,pc=n?Math.round(p.ok/n*100):0;
+  $('rTypes').innerHTML=KEYS.filter(function(k){return unlocked(k)||g.per[k].ok+g.per[k].bad>0}).map(function(k,i){var p=g.per[k],n=p.ok+p.bad,pc=n?Math.round(p.ok/n*100):0;
     return '<div class="row" style="--c:'+TYPES[k].c+';--i:'+i+'"><span style="color:'+TYPES[k].c+';display:flex;gap:6px;align-items:center">'+ico(k)+TYPES[k].n+'</span><div class="bar"><i style="width:'+(Juice.enabled?0:pc)+'%" data-w="'+pc+'"></i></div><span>'+p.ok+'/'+n+'</span></div>'}).join('');
   var chips=['+'+gain+' XP'];
   if(g.bestWpm)chips.push('Fastest typing '+g.bestWpm+' WPM');
@@ -536,6 +538,7 @@ function finish(){
         $('rLvl').textContent='Level '+lvAfter+' · '+rankName(lvAfter);$('rXp').textContent=db.xp+' XP';
         xb.style.transition='none';xb.style.width='0%';void xb.offsetWidth;xb.style.transition='';xb.style.width=Math.round(newPct*100)+'%';
         var unl=SKINS.concat(PACKS).filter(function(x){return x.lv>lvBefore&&x.lv<=lvAfter&&x.lv>1}).map(function(x){return x.n});
+        KEYS.forEach(function(k){if(UNLOCK[k]>lvBefore&&UNLOCK[k]<=lvAfter)unl.unshift(TYPES[k].n+' puzzles')});
         Juice.levelUp({level:lvAfter,rank:rankName(lvAfter),unlocked:unl});
         syncOpts();
       },Juice.enabled?950:0);

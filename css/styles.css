@@ -160,3 +160,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--text);outline-o
 .sheet .top b{font-size:20px}
 .pill{background:var(--text);color:var(--ink);border:0;border-radius:99px;padding:9px 16px;font:800 14px var(--display)}
 body{overflow-x:hidden}
+
+.rate.locked{opacity:.45;cursor:not-allowed;border-style:dashed}
+.cat.locked{opacity:.5;filter:saturate(.3);flex-direction:column;gap:2px}
+.cat small{font:500 9px/1 var(--mono);letter-spacing:.06em}
