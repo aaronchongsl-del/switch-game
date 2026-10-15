@@ -40,11 +40,17 @@ SOLVE['maths.digitsum'] = function (q) { return String(q.big.split('').reduce(fu
 SOLVE['maths.square'] = function (q) { if (q.big.indexOf('²') > 0) { var n = parseInt(q.big, 10); return String(n * n); } var s = +q.big.slice(1), r = Math.round(Math.sqrt(s)); return r * r === s ? String(r) : 'NOTSQ'; };
 SOLVE['maths.remainder'] = function (q) { var n = nums(q.big); return String(n[0] % n[1]); };
 SOLVE['maths.fraction'] = function (q) { var n = nums(q.big); var v = n[0] * n[2] / n[1]; return Number.isInteger(v) ? String(v) : 'FRAC'; };
-SOLVE['maths.mean'] = function (q) { var n = nums(q.big), s = n.reduce(function (a, b) { return a + b; }, 0); return Number.isInteger(s / n.length) ? String(s / n.length) : 'FRAC'; };
 SOLVE['maths.elapsed'] = function (q) { var m = q.ask.match(/(\d+):(\d+) to (\d+):(\d+)/); var a = +m[1] % 12 * 60 + +m[2], b = +m[3] % 12 * 60 + +m[4]; return String((b - a + 720) % 720); };
 SOLVE['maths.bigger'] = function (q) { var best = null, bv = -1, tie = false; q.choices.forEach(function (c) { var v = ev(c); if (v > bv) { bv = v; best = c; tie = false; } else if (v === bv) tie = true; }); return tie ? 'TIE' : best; };
 SOLVE['maths.negatives'] = function (q) { return String(ev(q.big)); };
 SOLVE['maths.precedence'] = function (q) { var v = ev(q.big); return Number.isInteger(v) ? String(v) : 'FRAC'; };
+
+function supToNum(s) { return s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, function (c) { return '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(c); }); }
+SOLVE['maths.mulbig'] = SOLVE['maths.sumexpr'] = function (q) { var v = ev(q.big); return Number.isInteger(v) && v >= 0 ? String(v) : 'BAD'; };
+SOLVE['maths.percent'] = function (q) { var n = nums(q.big), v = n[0] * n[1] / 100; return Number.isInteger(v) ? String(v) : 'FRAC'; };
+SOLVE['maths.power'] = function (q) { var m = q.big.match(/^(\d)([⁰¹²³⁴⁵⁶⁷⁸⁹]+)$/); return String(Math.pow(+m[1], +supToNum(m[2]))); };
+SOLVE['maths.sqdiff'] = function (q) { var n = nums(q.big); return String(n[0] * n[0] - n[1] * n[1]); };
+SOLVE['maths.chain4'] = function (q) { var v = ev(q.big); return Number.isInteger(v) && v >= 0 ? String(v) : 'BAD'; };
 
 SOLVE['memory.count'] = function (q) { var s = q.ask.match(/How many (\S+) do/)[1]; return String(q.flash.text.split(' ').filter(function (x) { return x === s; }).length); };
 SOLVE['memory.gap'] = function (q) { var n = nums(q.flash.text); return String(Math.abs(n[0] - n[1])); };
@@ -53,6 +59,8 @@ SOLVE['memory.letters'] = function (q) { var s = q.flash.text.toLowerCase().spli
 SOLVE['memory.pairs'] = function (q) { var d = nums(q.ask)[0], m = {}; q.flash.text.split(/\s+/).forEach(function (p) { var a = p.split('='); m[a[0]] = a[1]; }); return m[d]; };
 SOLVE['memory.repeat'] = function (q) { var w = q.flash.text.split(' · '), c = {}; w.forEach(function (x) { c[x] = (c[x] || 0) + 1; }); var rep = Object.keys(c).filter(function (k) { return c[k] === 2; }); return rep.length === 1 && w.length === Object.keys(c).length + 1 ? rep[0] : 'AMBIG'; };
 SOLVE['memory.order'] = function (q) { var w = q.flash.text.split(' · '), m = q.ask.match(/the (\w+) word/)[1]; var i = m === 'last' ? w.length - 1 : parseInt(m, 10) - 1; return w[i]; };
+SOLVE['memory.toptwo'] = function (q) { var n = nums(q.flash.text).sort(function (a, b) { return b - a; }); return String(n[0] + n[1]); };
+SOLVE['memory.evens'] = function (q) { return String(nums(q.flash.text).filter(function (x) { return x % 2 === 0; }).length); };
 SOLVE['memory.tally'] = function (q) { return String(ev(q.flash.text.replace(/\s+/g, ' ').replace(/ /g, ''))); };
 
 /* sequences: every rule family that fits the shown terms must predict the same next value */
@@ -78,6 +86,13 @@ function seqPredictions(t) {
   if (n >= 5 && arith(ev0) && arith(od)) { var nxt = n % 2 === 0 ? ev0[ev0.length - 1] + ev0[1] - ev0[0] : od[od.length - 1] + od[1] - od[0]; add(nxt, 'inter'); }
   /* squares/cubes with offset */
   [2, 3].forEach(function (e) { for (var off = -9; off <= 9; off++) for (var s0 = 0; s0 <= 12; s0++) { if (t.every(function (x, j) { return x === Math.pow(s0 + j, e) + off; })) add(Math.pow(s0 + n, e) + off, 'pow' + e); } });
+  /* third differences constant (cubic) */
+  var d3 = d2.slice(1).map(function (x, i2) { return x - d2[i2]; });
+  if (d3.length >= 2 && d3[0] !== 0 && d3.every(function (x) { return x === d3[0]; })) { var nd2 = d2[d2.length - 1] + d3[0], nd1 = d1[d1.length - 1] + nd2; add(t[n - 1] + nd1, 'cubic'); }
+  /* fibonacci plus a constant */
+  for (var kk = -9; kk <= 9; kk++) if (kk !== 0 && n >= 4 && t.every(function (x, j) { return j < 2 || x === t[j - 1] + t[j - 2] + kk; })) add(t[n - 1] + t[n - 2] + kk, 'fibk');
+  /* tribonacci */
+  if (n >= 5 && t.every(function (x, j) { return j < 3 || x === t[j - 1] + t[j - 2] + t[j - 3]; })) add(t[n - 1] + t[n - 2] + t[n - 3], 'trib');
   /* n(n+1)/2 style triangular steps: differences grow by constant */
   return P;
 }
@@ -92,6 +107,7 @@ SOLVE['logic.letterseq'] = function (q) {
   var shown = q.big.replace(', _', '').split(', ').map(function (c) { return lp(c) + 1; });
   var r = checkSeq('letterseq', q, shown); if (/^(NO|AMBIG)/.test(r)) return r; return L(+r - 1).toLowerCase();
 };
+SOLVE['logic.seqhard'] = function (q) { return checkSeq('seqhard', q, nums(q.big)); };
 SOLVE['logic.matrix'] = function (q) {
   var rows = q.big.split('|').map(function (s) { return nums(s); }), preds = {}, p, qq, c, two = rows.slice(0, 2), top = rows[2];
   for (p = -4; p <= 4; p++) for (qq = -4; qq <= 4; qq++) { if (two.every(function (x) { return p * x[0] + qq * x[1] === x[2]; })) preds[p * top[0] + qq * top[1]] = 1; }
@@ -104,6 +120,12 @@ SOLVE['logic.matrix'] = function (q) {
 };
 SOLVE['logic.machine'] = function (q) {
   var pts = q.big.split('   ').map(function (s) { return nums(s); }), known = pts.slice(0, 3), qx = pts[3][0];
+  function lag(x) { var s = 0; known.forEach(function (a, i) { var t = a[1]; known.forEach(function (b, j) { if (i !== j) t *= (x - b[0]) / (a[0] - b[0]); }); s += t; }); return s; }
+  var v = Math.round(lag(qx) * 1e6) / 1e6; return Number.isInteger(v) && v > 0 ? String(v) : 'BAD:' + v;
+};
+SOLVE['logic.machine2'] = function (q) {
+  var pts = q.big.split('   ').map(function (s) { return nums(s); }), known = pts.slice(0, 3), qx = pts[3][0];
+  var sign = q.big.indexOf('−') >= 0 ? -1 : 1;
   function lag(x) { var s = 0; known.forEach(function (a, i) { var t = a[1]; known.forEach(function (b, j) { if (i !== j) t *= (x - b[0]) / (a[0] - b[0]); }); s += t; }); return s; }
   var v = Math.round(lag(qx) * 1e6) / 1e6; return Number.isInteger(v) && v > 0 ? String(v) : 'BAD:' + v;
 };
@@ -188,9 +210,19 @@ SOLVE['logic.ages'] = function (q) {
   var later = (tail.match(/In (\d+) years/) || [0, 0])[1];
   return String(ages[name] + +later);
 };
+SOLVE['logic.agechain'] = function (q) { return SOLVE['logic.ages'](q); };
 SOLVE['logic.oddword'] = function (q) { var i = I.oddIndex(q.choices); return i >= 0 ? q.choices[i] : 'AMBIG' + i; };
 
 SOLVE['word.letterat'] = function (q) { var i = nums(q.ask)[0]; return /from the end/.test(q.ask) ? q.big[q.big.length - i] : q.big[i - 1]; };
+SOLVE['word.letterat2'] = SOLVE['word.letterat'];
+SOLVE['word.revat'] = function (q) { var i = nums(q.ask)[0]; return q.big.split('').reverse()[i - 1]; };
+SOLVE['word.swap'] = function (q) { var w = q.big.split(''); var f = w.shift(), l = w.pop(); return l + w.join('') + f; };
+SOLVE['word.vowelmost'] = function (q) {
+  var c = q.choices.map(function (w) { return w.replace(/[^aeiou]/g, '').length; }), m = Math.max.apply(null, c);
+  return c.filter(function (x) { return x === m; }).length === 1 ? q.choices[c.indexOf(m)] : 'AMBIG';
+};
+SOLVE['word.dropvowels2'] = function (q) { var l = q.big.replace(/[aeiou]/g, ''); return /backwards/.test(q.ask) ? l.split('').reverse().join('') : l; };
+SOLVE['word.countletter2'] = function (q) { var c = q.ask.match(/letter (\w)/)[1].toLowerCase(); return String(q.big.split('').filter(function (x) { return x === c; }).length); };
 SOLVE['word.alphafirst'] = function (q) { var s = q.choices.slice().sort(); return /FIRST/.test(q.ask) ? s[0] : s[3]; };
 SOLVE['word.dropvowels'] = function (q) { return q.big.split('').filter(function (c) { return 'aeiou'.indexOf(c) < 0; }).join(''); };
 SOLVE['word.palin'] = function (q) { var p = q.choices.filter(function (w) { return w === w.split('').reverse().join(''); }); return p.length === 1 ? p[0] : 'AMBIG'; };
@@ -219,6 +251,18 @@ SOLVE['space.dice'] = function (q) {
   if (/bottom\?$/.test(q.ask)) return String(7 - top);
   return String(7 - n[1]);
 };
+SOLVE['space.dice2'] = function (q) {
+  var n = nums(q.ask.replace('add up to 7', '')), F = { top: n[0], bottom: 7 - n[0], front: n[1], back: 7 - n[1], right: n[2], left: 7 - n[2] };
+  var steps = q.ask.match(/Roll it one step: ([^.]*)\./)[1].split(', ');
+  /* each roll is a cycle of four faces; faces listed in the order they travel */
+  var cyc = { forward: ['top', 'back', 'bottom', 'front'], backward: ['top', 'front', 'bottom', 'back'], right: ['top', 'right', 'bottom', 'left'], left: ['top', 'left', 'bottom', 'right'] };
+  steps.forEach(function (s) { var c = cyc[s], old = {}, i; for (i = 0; i < 4; i++) old[c[i]] = F[c[i]]; for (i = 0; i < 4; i++) F[c[(i + 1) % 4]] = old[c[i]]; });
+  return String(F.top);
+};
+SOLVE['space.angle'] = function (q) {
+  var m = q.ask.match(/shows (\d+):(\d+)\./), h = +m[1] % 12, mi = +m[2], a = Math.abs(h * 30 + mi / 2 - mi * 6) % 360, v = Math.min(a, 360 - a);
+  return Number.isInteger(v) ? String(v) : 'NONINT';
+};
 SOLVE['space.clockmirror'] = function (q) {
   var m = q.ask.match(/shows (\d+):(\d+)\./), h = +m[1] % 12, mi = +m[2];
   var angH = h * 30 + mi * 0.5, mir = (360 - angH) % 360, mins = Math.round(mir * 2);
@@ -242,7 +286,7 @@ SOLVE['space.routes'] = function (q) {
 };
 
 SOLVE['typing.word'] = SOLVE['typing.phrase'] = SOLVE['typing.mixed'] = SOLVE['typing.digits'] = function (q) { return q.big; };
-SOLVE['typing.doubles'] = function (q) { return q.big + ' ' + q.big; };
+SOLVE['typing.doubles'] = function (q) { var k = /four times/.test(q.ask) ? 4 : /three times/.test(q.ask) ? 3 : 2; return new Array(k).fill(q.big).join(' '); };
 /* ---- run ---- */
 var stats = {}, shapeProblems = 0;
 function checkShape(id, q) {
@@ -255,7 +299,7 @@ function checkShape(id, q) {
   if (q.big && q.big.length > 42) bad('big too long ' + q.big.length);
   if (q.kind === 'num' && !/^\d+$/.test(q.answer)) bad('num answer must be non-negative digits');
   if (q.kind === 'text' && !/^[a-z]+$/.test(q.answer) && !(/typing/.test(id) && /^[a-z0-9]+( [a-z0-9]+)*$/.test(q.answer))) bad('text answer must be lowercase letters');
-  if (q.kind === 'text' && q.answer.length > (/typing/.test(id) ? 24 : 12)) bad('text answer long');
+  if (q.kind === 'text' && q.answer.length > (/typing/.test(id) ? 42 : 12)) bad('text answer long');
   if (q.kind === 'choice') {
     if (!Array.isArray(q.choices) || q.choices.length < 3 || q.choices.length > 4) return bad('choices need 3-4 options (hint needs >=3)');
     if (q.choices.some(function (c, i) { return q.choices.indexOf(c) !== i; })) bad('duplicate choice');
@@ -267,6 +311,7 @@ function checkShape(id, q) {
   if (q.cls === 'seq' && /^\d|^[A-Z],/.test(q.big || '') && !Array.isArray(q.terms) && /sequence|comes next/.test(q.ask)) bad('sequence needs terms');
   if (q.visual) {
     var v = q.visual, num = function (x) { return typeof x === 'number' && isFinite(x); };
+    if (v.kind === 'cube' || v.kind === 'grid') { if ([v.a, v.b, v.c, v.w, v.h].some(function (x) { return x > 6; })) bad('visual too big for renderer'); }
     var okv = { compass: num(v.deg) && v.deg % 90 === 0 && q.ask.indexOf('face ' + DIRS[v.deg / 90 % 4]) >= 0,
       arrow: num(v.deg) && v.deg % 90 === 0 && q.ask.indexOf('points ' + ARR[v.deg / 90 % 4]) >= 0,
       dice: v.top >= 1 && v.top <= 6 && q.ask.indexOf('top shows ' + v.top) >= 0,
@@ -277,6 +322,7 @@ function checkShape(id, q) {
       pairs: Array.isArray(v.pairs) && v.pairs.length === 2 && v.pairs.every(function (p) { return q.ask.toLowerCase().indexOf(p[0] + ' → ' + p[1]) >= 0 || q.ask.indexOf(p[0].toUpperCase() + ' → ' + p[1].toUpperCase()) >= 0; }) };
     if (!okv[v.kind]) bad('visual does not match question ' + JSON.stringify(v));
   }
+  if (/typing/.test(id) && q.variant && !q.typing) bad('typing question missing typing:true');
   if (Array.isArray(q.terms) && !q.terms.every(Number.isFinite)) bad('terms');
 }
 
@@ -286,7 +332,10 @@ cats.forEach(function (cat) {
     var id = cat + '.' + v.id, seen = {}, n = 0, solver = SOLVE[id];
     stats[id] = { n: 0, uniq: 0, fallback: 0 };
     if (!solver) fail(id, 'NO SOLVER WRITTEN', {});
-    for (var d = v.min; d <= v.max; d++) {
+    var ds = []; for (var dd = v.min; dd <= Math.min(v.max, 16); dd++) ds.push(dd);
+    if (v.max >= 99) [24, 40].forEach(function (x) { if (x >= v.min) ds.push(x); });
+    for (var di = 0; di < ds.length; di++) {
+      var d = ds[di];
       for (var i = 0; i < N; i++) {
         var r = rngFrom('t:' + id + ':' + d + ':' + i), q;
         try { q = v.gen(r, d); } catch (e) { fail(id, 'THROW ' + e.message, { d: d }); continue; }
@@ -313,7 +362,8 @@ if (gamePath && fs.existsSync(gamePath)) {
   var G = Function(code)();
   X.install(G.GEN);
   var KEYS = ['maths', 'memory', 'logic', 'word', 'space', 'typing'], ncalls = 0, newShare = {};
-  KEYS.forEach(function (k) { newShare[k] = [0, 0]; for (var d = 1; d <= 8; d++) for (var i = 0; i < 400; i++) { var q; try { q = G.GEN[k](G.rngFrom('i:' + k + d + i), d); } catch (e) { fail('install.' + k, 'THROW ' + e.message + ' d=' + d, {}); continue; } ncalls++; checkShape(q.variant ? 'install.' + k : 'EXISTING-GAME.' + k, q); newShare[k][1]++; if (q.variant) newShare[k][0]++; } });
+  var DEPTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 24, 40];
+  KEYS.forEach(function (k) { newShare[k] = [0, 0]; DEPTHS.forEach(function (d) { for (var i = 0; i < 400; i++) { var q; try { q = G.GEN[k](G.rngFrom('i:' + k + d + i), d); } catch (e) { fail('install.' + k, 'THROW ' + e.message + ' d=' + d, {}); continue; } ncalls++; checkShape(q.variant ? 'install.' + k : 'EXISTING-GAME.' + k, q); newShare[k][1]++; if (q.variant) newShare[k][0]++; if (d > 8 && !q.variant && k !== 'memory') fail('install.' + k, 'original generator used above level 8 d=' + d, q); } }); });
   console.log('integration with game generators:', ncalls, 'questions; share from new variants:', KEYS.map(function (k) { return k + ' ' + Math.round(100 * newShare[k][0] / newShare[k][1]) + '%'; }).join(', '));
 }
 

@@ -2,7 +2,7 @@
 
 Files in this folder:
 
-- `switch-questions.js`: the drop-in module. 50 new puzzle variants, spread over the four existing categories plus two new ones (Spatial and Typing).
+- `switch-questions.js`: the drop-in module. 68 new puzzle variants (18 maths, 10 memory, 11 logic, 14 words, 10 spatial, 5 typing), spread over the four existing categories plus two new ones (Spatial and Typing).
 - `test-questions.js`: an independent answer checker. It re-solves every generated question by a different route and checks the shape the game needs.
 - `README.md`: this file.
 
@@ -12,7 +12,7 @@ Written against the game version that has hints (3 per run), and tested with the
 
 | Category | New variants | What they add |
 |---|---|---|
-| Maths | 13 | missing factor, double/half/triple, shop change, rounding, digit sum, squares and roots, remainders, fractions of a number, averages, elapsed minutes, "which product is biggest", negatives in the middle of a sum, order of operations |
+| Maths | 12 | missing factor, double/half/triple, shop change, rounding, digit sum, squares and roots, remainders, fractions of a number, elapsed minutes, "which product is biggest", negatives in the middle of a sum, order of operations |
 | Memory | 8 | count one symbol in a flash, difference of two numbers, biggest/smallest, letters (and letters backwards), digit-letter pairs, the word that appeared twice, Nth word, running total |
 | Logic | 8 | letter sequences, harder number sequences (shrinking steps, alternating operations), number grids ("every row follows the same rule"), input-output machines, yes/no/can't-tell reasoning, symbol equations, age chains, word odd-one-out |
 | Words | 8 | Nth letter, alphabetical first/last, remove the vowels, palindrome, double letter, longest word, count a letter, find the anagram |
@@ -20,6 +20,28 @@ Written against the game version that has hints (3 per run), and tested with the
 | Typing (new) | 5 | speed typing: copy a word, a short phrase, a code of letters and digits, a long number, or a word twice with a space. The game's existing speed bonus already rewards fast answers, and a wrong key at the full length counts as a miss |
 
 Existing questions keep the same visual style (same card, same big text, same sequence layout). All of the new ones are worked out, none rely on facts someone could look up.
+
+## Getting harder past level 8 (new)
+
+The game's own generators stop at level 8 (their pools are filtered by `hi <= 8`, and calling them with a higher level would crash). `install()` now handles that: **at level 9 and above it only draws variants built to keep scaling** (the original generators are used only up to level 8, with one exception: the original `memory`, which already scales by itself).
+
+How each category keeps rising (t = level minus 8):
+
+| Category | Above level 8 |
+|---|---|
+| Maths | 3-digit by 2-digit products, `a × b − c × e`, percentages, powers (`3⁵`), difference of squares, four-term order of operations. Numbers grow with t |
+| Memory | longer lists and shorter flash times for count, letters (always backwards from level 9), pairs, repeat, order, tally; new "add the two biggest" and "how many were even" |
+| Logic | harder sequences (cubic, sums of squares, Fibonacci plus a constant, tribonacci, multiply and add), quadratic input-output machines with bigger coefficients, four-person age chains, odd-one-out from the subtle bank only |
+| Words | Nth letter of 8 to 10 letter words, "read it backwards, which letter", swap first and last letters, most vowels, remove vowels (then reverse), count a letter across three words |
+| Spatial | longer turn/path/rotation chains (up to 12/10/6 steps), bigger blocks, grids and route counts, rolling a die through up to 7 moves, the angle between clock hands |
+| Typing | several words in a row, phrases up to 7 words, codes up to 16 characters, numbers up to 15 digits, the word typed 3 then 4 times |
+
+There is no hard ceiling in the code (`d` can be any number), but most caps are reached around **level 16 to 20**, after which the questions stay at that top difficulty. Memory keeps shrinking its flash time.
+
+Notes for the game thread:
+- Typed answers can now contain a single space (typing category) and be up to 15 digits long (typing digits). Keep the answer as a string.
+- The original memory generator's flash time falls to 600 ms around level 40 (below the 800 ms floor this module uses). That is the game's own scaling; the new memory variants never go below about 1.5 s.
+- Pictures are only attached while they fit the renderer (blocks up to 5, grids up to 6 wide); bigger ones are text only.
 
 ## Plug-in checklist
 
@@ -39,7 +61,7 @@ Every new question also carries `variant` (for example `"logic.matrix"`), handy 
 
 `install` also adds `GEN.space` and `GEN.typing`. For the game to offer them:
 
-1. In `TYPES` add `space` and `typing` from `SwitchQuestions.TYPES` (or copy the values: `{n:'Spatial',c:'var(--space)'}` and `{n:'Code',c:'var(--code)'}`, `{n:'Typing',c:'var(--typing)'}`).
+1. In `TYPES` add `space` and `typing` from `SwitchQuestions.TYPES` (or copy the values: `{n:'Spatial',c:'var(--space)'}` and `{n:'Typing',c:'var(--typing)'}`).
 2. `KEYS=['maths','memory','logic','word','space','typing']`.
 3. Add the colours to the stylesheet: `document.head.insertAdjacentHTML('beforeend','<style>'+SwitchQuestions.CSS+'</style>')` or paste `SwitchQuestions.CSS` into the CSS block (it covers the Neon and Paper skins).
 4. In `startRun`, `per:{...}` lists the four types by hand. Add `space` and `typing` entries, each `{ok:0,bad:0}`.
@@ -48,7 +70,7 @@ Every new question also carries `variant` (for example `"logic.matrix"`), handy 
 7. The Hearth "Game visual polish" layer picks a glyph per type for the switch curtain. Suggested glyphs: Spatial `↑ → ↓`, Typing `⌨ abc`.
 8. Saved stats: `db.stats` is filled from `KEYS` on load, so new types appear automatically for existing players.
 
-If you would rather ship the new categories later, skip step 2 and nothing changes: `GEN.space` and `GEN.code` are simply never drawn.
+If you would rather ship the new categories later, skip step 2 and nothing changes: `GEN.space` and `GEN.typing` are simply never drawn.
 
 ### 3. Things to know
 
@@ -65,7 +87,7 @@ If you would rather ship the new categories later, skip step 2 and nothing chang
 
 ## How answers were checked
 
-`node test-questions.js path/to/game.html` runs everything below (set `N=1500` for the full run; the default is 1,500 samples per difficulty per variant).
+`node test-questions.js path/to/game.html` runs everything below (set `N=100` for a quick run; the default is 1,500 samples per difficulty per variant). Variants that scale are tested at levels 1 to 16, 24 and 40; the game integration check also covers 9, 10, 12, 16, 24 and 40 and fails if an original generator is called above level 8 (memory excepted).
 
 1. **Independent solving.** Every variant has a second solver in `test-questions.js` that reads the visible question text and solves it a different way: simulation (turns, paths, arrows, step-by-step instructions), brute force (painted blocks, grids, routes, symbol equations), exhaustive model checking for the yes/no/can't-tell reasoning, interpolation for the input-output machines. The answer must match what the generator says.
 2. **Ambiguity guards.**
@@ -96,3 +118,5 @@ Spatial questions that have a picture carry `visual:{kind,...}` in the shapes fr
 - Code category removed. Typing stays as its own category.
 - Words no longer has any alphabet-position questions (letter sums like I + N, "3 steps after M").
 - Note: Logic still has letter sequences (A, C, E, G, _) and Words has "alphabetical first/last", which lean on knowing the alphabet order. Say if those should go too.
+- Typing questions are flagged `typing:true` by `install()` so the typing card shows.
+- Mean/average removed from Maths.

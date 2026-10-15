@@ -73,6 +73,9 @@
     ['loop', 'polo', 'pool'], ['spare', 'pears', 'parse', 'spear', 'reaps', 'pares'], ['tale', 'teal'], ['deal', 'lead', 'dale'], ['siren', 'rinse'],
     ['below', 'elbow', 'bowel'], ['lemon', 'melon']];
   var NONSENSE = ['dreks', 'plorbs', 'wumps', 'zinks', 'gleeps', 'tonks', 'fizzes', 'blips', 'snarfs', 'quibs', 'morgs', 'yelps'];
+  var LONG = ['blueberry', 'hurricane', 'spaceship', 'waterfall', 'skeleton', 'landscape', 'astronaut', 'hospital', 'triangle', 'calendar',
+    'envelope', 'treasure', 'lighthouse', 'snowflake', 'strawberry', 'paintbrush', 'pineapple', 'lightning', 'fireworks', 'headphone',
+    'telephone', 'chocolate', 'adventure', 'crocodile', 'porcupine', 'umbrella', 'notebook', 'sandwich', 'mountain', 'dinosaur', 'keyboard', 'fireplace'];
   var NAMES = ['Mia', 'Leo', 'Ava', 'Kai', 'Zoe', 'Sam', 'Ivy', 'Ben', 'Noor', 'Raj', 'Eli', 'Tara'];
 
   var VOW = 'aeiou';
@@ -211,16 +214,43 @@
       else if (f === 1) { do { a = r.int(30, 90); b = r.int(2, 9); c = r.int(2, 9); } while (a <= b * c); big = a + ' − ' + b + ' × ' + c; ans = a - b * c; }
       else { a = r.int(2, 9); b = r.int(2, 9); c = r.int(10, 40); e = r.int(2, 9); big = c + ' + ' + a + ' × ' + b + ' − ' + e; ans = c + a * b - e; }
       return { ask: 'Solve it (multiply and divide first)', big: big, kind: 'num', answer: String(ans) };
+    }),
+    /* ---- level 9 and up: these are the only maths variants drawn there; t = levels above 8, nothing is capped below 99 ---- */
+    V('mulbig', 9, 99, function (r, d) {
+      var t = d - 8, a = r.int(12 + t, Math.min(999, 30 + t * 8)), b = r.int(11, Math.min(99, 15 + t * 3));
+      return { ask: 'Work it out', big: a + ' × ' + b, kind: 'num', answer: String(a * b) };
+    }),
+    V('sumexpr', 9, 99, function (r, d) {
+      var t = d - 8, a, b, c, e;
+      do { a = r.int(11, 15 + t * 2); b = r.int(3, 9 + Math.floor(t / 2)); c = r.int(6, 12 + t); e = r.int(3, 9); } while (a * b <= c * e);
+      return { ask: 'Work it out (multiply first)', big: a + ' × ' + b + ' − ' + c + ' × ' + e, kind: 'num', answer: String(a * b - c * e) };
+    }),
+    V('percent', 9, 99, function (r, d) {
+      var t = d - 8, p = r.pick([5, 10, 15, 20, 25, 30, 40, 60, 75, 90].concat(t >= 3 ? [35, 45, 55, 65, 85, 95] : [])), n = 20 * r.int(3, 10 + t * 2);
+      return { ask: 'Work it out', big: p + '% of ' + n, kind: 'num', answer: String(p * n / 100) };
+    }),
+    V('power', 9, 99, function (r, d) {
+      var t = d - 8, SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹', b, e, v;
+      do { b = r.int(2, Math.min(9, 5 + Math.floor(t / 2))); e = r.int(3, Math.min(8, 3 + Math.floor(t / 2))); v = Math.pow(b, e); } while (v > 999999 || v < 27);
+      return { ask: 'Work it out', big: b + String(e).split('').map(function (c) { return SUP[+c]; }).join(''), kind: 'num', answer: String(v) };
+    }),
+    V('sqdiff', 9, 99, function (r, d) {
+      var t = d - 8, a = r.int(12 + t, 25 + t * 2), b = r.int(5, a - 3);
+      return { ask: 'Work it out', big: a + '² − ' + b + '²', kind: 'num', answer: String(a * a - b * b) };
+    }),
+    V('chain4', 9, 99, function (r, d) {
+      var t = d - 8, b = r.int(2, 9), a = b * r.int(5, 20 + t), c = r.int(3, 9 + t), e = r.int(3, 9 + t), f = r.int(1, Math.max(2, a / b + c * e - 1));
+      return { ask: 'Solve it (multiply and divide first)', big: a + ' ÷ ' + b + ' + ' + c + ' × ' + e + ' − ' + f, kind: 'num', answer: String(a / b + c * e - f) };
     })
   ];
 
   /* ================= MEMORY ================= */
   var memory = [
-    V('count', 1, 6, function (r, d) {
-      var syms = pickN(r, ['★', '●', '▲', '■', '◆'], 3), len = Math.min(12, 6 + d), target = syms[0], n = r.int(1, Math.min(5, len - 2)), arr = [], i;
+    V('count', 1, 99, function (r, d) {
+      var syms = pickN(r, ['★', '●', '▲', '■', '◆'], 3), len = Math.min(20, 6 + d), target = syms[0], n = r.int(1, Math.min(9, len - 2)), arr = [], i;
       for (i = 0; i < n; i++) arr.push(target);
       while (arr.length < len) arr.push(r.pick(syms.slice(1)));
-      return { ask: 'How many ' + target + ' do you see?', flash: { text: r.shuffle(arr).join(' '), ms: 1300 + len * 260 }, kind: 'num', answer: String(n) };
+      return { ask: 'How many ' + target + ' do you see?', flash: { text: r.shuffle(arr).join(' '), ms: Math.min(6000, 1300 + len * 260) }, kind: 'num', answer: String(n) };
     }),
     V('gap', 1, 4, function (r, d) {
       var a = r.int(30, 90 + d * 10), b = r.int(11, a - 8);
@@ -230,31 +260,31 @@
       var nums = distinctInts(r, 4, 11, 40 + d * 15), big = r.f() < 0.5, ans = big ? Math.max.apply(null, nums) : Math.min.apply(null, nums);
       return { ask: big ? 'Which was the biggest number?' : 'Which was the smallest number?', flash: { text: nums.join('  '), ms: 1500 + d * 100 }, kind: 'choice', answer: String(ans), choices: nums.map(String) };
     }),
-    V('letters', 1, 8, function (r, d) {
-      var len = Math.min(7, 3 + Math.floor((d + 1) / 2)), arr = pickN(r, 'bcdfghjkmnpqrstvwxz'.split(''), len), back = d >= 4 && r.f() < 0.5;
-      return { ask: back ? 'Type the letters backwards' : 'Type the letters', flash: { text: arr.join(' ').toUpperCase(), ms: 700 + len * 450 }, kind: 'text', answer: back ? rev(arr.join('')) : arr.join('') };
+    V('letters', 1, 99, function (r, d) {
+      var len = Math.min(11, 3 + Math.floor((d + 1) / 2)), arr = pickN(r, 'bcdfghjkmnpqrstvwxz'.split(''), len), back = d >= 9 || (d >= 4 && r.f() < 0.5);
+      return { ask: back ? 'Type the letters backwards' : 'Type the letters', flash: { text: arr.join(' ').toUpperCase(), ms: 700 + len * Math.max(280, 450 - Math.max(0, d - 8) * 15) }, kind: 'text', answer: back ? rev(arr.join('')) : arr.join('') };
     }),
-    V('pairs', 2, 8, function (r, d) {
-      var k = d <= 3 ? 3 : (d <= 6 ? 4 : 5), dig = pickN(r, [1, 2, 3, 4, 5, 6, 7, 8, 9], k), letters = pickN(r, 'BCDFGHJKLMNPQRSTVWXZ'.split(''), k + 3);
+    V('pairs', 2, 99, function (r, d) {
+      var k = Math.min(9, d <= 3 ? 3 : (d <= 6 ? 4 : 5 + Math.floor(Math.max(0, d - 8) / 2))), dig = pickN(r, [1, 2, 3, 4, 5, 6, 7, 8, 9], k), letters = pickN(r, 'BCDFGHJKLMNPQRSTVWXZ'.split(''), k + 3);
       var ti = r.int(0, k - 1), ans = letters[ti];
       var shown = letters.slice(0, k).filter(function (x, i) { return i !== ti; }), extras = letters.slice(k);
       var distract = r.shuffle(shown).concat(extras).slice(0, 3);
       var txt = dig.map(function (x, i) { return x + '=' + letters[i]; }).join('  ');
-      return { ask: 'What letter went with ' + dig[ti] + '?', flash: { text: txt, ms: 900 + k * 650 }, kind: 'choice', answer: ans, choices: r.shuffle([ans].concat(distract)) };
+      return { ask: 'What letter went with ' + dig[ti] + '?', flash: { text: txt, ms: 900 + k * Math.max(450, 650 - Math.max(0, d - 8) * 20) }, kind: 'choice', answer: ans, choices: r.shuffle([ans].concat(distract)) };
     }),
-    V('repeat', 2, 8, function (r, d) {
-      var n = d <= 3 ? 4 : (d <= 5 ? 5 : 6), words = pickN(r, SHORT, n), rep = r.pick(words), list = r.shuffle(words.concat([rep]));
+    V('repeat', 2, 99, function (r, d) {
+      var n = Math.min(9, d <= 3 ? 4 : (d <= 5 ? 5 : 6 + Math.floor(Math.max(0, d - 8) / 2))), words = pickN(r, SHORT, n), rep = r.pick(words), list = r.shuffle(words.concat([rep]));
       var others = words.filter(function (w) { return w !== rep; });
       var extra = pickN(r, SHORT.filter(function (w) { return words.indexOf(w) < 0; }), 3);
-      return { ask: 'One word showed up twice. Which one?', flash: { text: list.join(' · '), ms: 900 + list.length * 520 }, kind: 'choice', answer: rep, choices: r.shuffle([rep].concat(r.shuffle(others).concat(extra).slice(0, 3))) };
+      return { ask: 'One word showed up twice. Which one?', flash: { text: list.join(' · '), ms: 900 + list.length * Math.max(400, 520 - Math.max(0, d - 8) * 15) }, kind: 'choice', answer: rep, choices: r.shuffle([rep].concat(r.shuffle(others).concat(extra).slice(0, 3))) };
     }),
-    V('order', 2, 8, function (r, d) {
-      var n = d <= 4 ? 4 : 5, words = pickN(r, SHORT, n), idx = r.int(1, n), ans = words[idx - 1];
+    V('order', 2, 99, function (r, d) {
+      var n = Math.min(9, d <= 4 ? 4 : 5 + Math.floor(Math.max(0, d - 8) / 2)), words = pickN(r, SHORT, n), idx = r.int(1, n), ans = words[idx - 1];
       var others = words.filter(function (w, i) { return i !== idx - 1; });
-      return { ask: 'What was the ' + (idx === n ? 'last' : ord(idx)) + ' word?', flash: { text: words.join(' · '), ms: 900 + n * 600 }, kind: 'choice', answer: ans, choices: r.shuffle([ans].concat(r.shuffle(others).slice(0, 3))) };
+      return { ask: 'What was the ' + (idx === n ? 'last' : ord(idx)) + ' word?', flash: { text: words.join(' · '), ms: 900 + n * Math.max(450, 600 - Math.max(0, d - 8) * 20) }, kind: 'choice', answer: ans, choices: r.shuffle([ans].concat(r.shuffle(others).slice(0, 3))) };
     }),
-    V('tally', 3, 8, function (r, d) {
-      var n = Math.min(5, 2 + Math.ceil(d / 3)), tot, parts, i, x, sign;
+    V('tally', 3, 99, function (r, d) {
+      var n = Math.min(8, 2 + Math.ceil(d / 3)), tot, parts, i, x, sign;
       do {
         tot = 0; parts = [];
         for (i = 0; i < n; i++) {
@@ -263,7 +293,17 @@
           tot += sign * x; parts.push((sign > 0 ? '+' : '−') + x);
         }
       } while (tot <= 0);
-      return { ask: 'Start at 0. What is the total?', flash: { text: parts.join('  '), ms: 700 + n * 650 }, kind: 'num', answer: String(tot) };
+      return { ask: 'Start at 0. What is the total?', flash: { text: parts.join('  '), ms: 700 + n * Math.max(500, 650 - Math.max(0, d - 8) * 15) }, kind: 'num', answer: String(tot) };
+    })
+    ,
+    V('toptwo', 9, 99, function (r, d) {
+      var t = d - 8, n = Math.min(9, 5 + Math.floor(t / 2)), nums = distinctInts(r, n, 11, 60 + t * 10), s = nums.slice().sort(function (a, b) { return b - a; });
+      return { ask: 'Add the two biggest numbers', flash: { text: nums.join('  '), ms: 900 + n * Math.max(420, 520 - t * 10) }, kind: 'num', answer: String(s[0] + s[1]) };
+    }),
+    V('evens', 9, 99, function (r, d) {
+      var t = d - 8, n = Math.min(9, 5 + Math.floor(t / 2)), nums, cnt;
+      do { nums = distinctInts(r, n, 11, 80 + t * 10); cnt = nums.filter(function (x) { return x % 2 === 0; }).length; } while (cnt === 0 || cnt === n);
+      return { ask: 'How many of the numbers were even?', flash: { text: nums.join('  '), ms: 900 + n * Math.max(420, 520 - t * 10) }, kind: 'num', answer: String(cnt) };
     })
   ];
 
@@ -278,7 +318,7 @@
     return { ask: 'What letter comes next?', big: t.map(L).join(', ') + ', _', kind: 'text', answer: L(ans).toLowerCase(), cls: 'seq', terms: t.map(function (x) { return x + 1; }) };
   }
   function oddWord(r, d) {
-    var bank = warmOddBank(), list = (d <= 4 || r.f() < 0.4) ? bank.easy : bank.hard.concat(bank.easy), p = r.pick(list);
+    var bank = warmOddBank(), list = d > 8 ? bank.hard : (d <= 4 || r.f() < 0.4) ? bank.easy : bank.hard.concat(bank.easy), p = r.pick(list);
     return { ask: 'Three of these words share a feature. Which one does not belong?', kind: 'choice', answer: p.odd, choices: r.shuffle(p.words) };
   }
 
@@ -358,8 +398,64 @@
       ]).join(' ');
       return { ask: s + (later ? ' In ' + later + ' years, how old will ' + nm[2] + ' be?' : ' How old is ' + nm[2] + '?'), big: '', kind: 'num', answer: String(c + later) };
     }),
-    V('oddword', 1, 8, oddWord)
+    V('oddword', 1, 99, oddWord),
+    V('seqhard', 9, 99, function (r, d) {
+      var q, tries = 0;
+      do { q = seqHardOnce(r, d); tries++; } while (seqAmbiguous(q.terms) && tries < 300);
+      return q;
+    })
+    ,
+    V('seqhard_dummy', 99, -1, null)
   ];
+  function seqHardOnce(r, d) {
+      var t = d - 8, fam = r.pick(['cube', 'diffsq', 'fibk', 'growmul'].concat(t >= 3 ? ['trib'] : [])), a = [], i, n0, k, m, c;
+      if (fam === 'cube') { n0 = r.int(1, 3); k = r.int(1, 3); for (i = 0; i < 7; i++) a.push(Math.pow(n0 + i, 3) + k * (n0 + i)); }
+      else if (fam === 'diffsq') { a = [r.int(1, 8)]; n0 = r.int(1, 3); for (i = 1; i < 7; i++) a.push(a[i - 1] + (n0 + i) * (n0 + i)); }
+      else if (fam === 'fibk') { k = r.int(1, 3); a = [r.int(1, 4), r.int(2, 6)]; for (i = 2; i < 7; i++) a.push(a[i - 1] + a[i - 2] + k); }
+      else if (fam === 'growmul') { m = r.int(3, 4); c = r.int(1, 5); a = [r.int(1, 4)]; for (i = 1; i < 7; i++) a.push(a[i - 1] * m + c); }
+      else { a = [r.int(1, 3), r.int(2, 4), r.int(3, 6)]; for (i = 3; i < 7; i++) a.push(a[i - 1] + a[i - 2] + a[i - 3]); }
+      var ans = a.pop();
+      return { ask: 'What comes next?', big: a.join(', ') + ', _', kind: 'num', answer: String(ans), cls: 'seq', terms: a.slice() };
+  }
+  logic.pop();
+  logic.push(
+    V('machine2', 9, 99, function (r, d) {
+      var t = d - 8, p2 = Math.min(4, 1 + Math.floor(t / 3)), p1 = r.int(0, 5), p0 = r.int(-4, 9), f, xs, qx, rows;
+      f = function (x) { return p2 * x * x + p1 * x + p0; };
+      do { xs = distinctInts(r, 4, 1, 12).sort(function (a, b) { return a - b; }); qx = xs.pop(); rows = xs; } while (rows.some(function (x) { return f(x) < 1; }) || f(qx) < 1);
+      return { ask: 'A machine changes numbers by the same rule every time. What comes out?', big: rows.map(function (x) { return x + ' → ' + f(x); }).join('   ') + '   ' + qx + ' → ?', kind: 'num', answer: String(f(qx)), cls: 'seq' };
+    }),
+    V('agechain', 9, 99, function (r, d) {
+      var t = d - 8, nm = pickN(r, NAMES, 4), ages = [r.int(10, 40)], diffs = [], dirs = [], i, x, up, lines, later = r.int(2, 9);
+      for (i = 1; i < 4; i++) {
+        x = r.int(2, 9 + Math.floor(t / 2)); up = r.f() < 0.55;
+        if (!up && ages[i - 1] - x < 1) up = true;
+        diffs.push(x); dirs.push(up); ages.push(up ? ages[i - 1] + x : ages[i - 1] - x);
+      }
+      lines = [nm[0] + ' is ' + ages[0] + '.'];
+      for (i = 1; i < 4; i++) lines.push(nm[i] + ' is ' + diffs[i - 1] + ' years ' + (dirs[i - 1] ? 'older' : 'younger') + ' than ' + nm[i - 1] + '.');
+      return { ask: r.shuffle(lines).join(' ') + ' In ' + later + ' years, how old will ' + nm[3] + ' be?', big: '', kind: 'num', answer: String(ages[3] + later) };
+    })
+  );
+
+  /* does more than one common rule family fit the shown terms with different next values? */
+  function seqAmbiguous(t) {
+    var n = t.length, P = {}, i, m, a, k;
+    function add(v) { P[v] = 1; }
+    var d1 = [], d2 = [], d3 = [];
+    for (i = 1; i < n; i++) d1.push(t[i] - t[i - 1]);
+    for (i = 1; i < d1.length; i++) d2.push(d1[i] - d1[i - 1]);
+    for (i = 1; i < d2.length; i++) d3.push(d2[i] - d2[i - 1]);
+    function same(x) { return x.length >= 2 && x.every(function (v) { return v === x[0]; }); }
+    if (same(d1)) add(t[n - 1] + d1[0]);
+    if (same(d2)) add(t[n - 1] + d1[n - 2] + d2[0]);
+    if (same(d3) && d3[0] !== 0) add(t[n - 1] + d1[d1.length - 1] + d2[d2.length - 1] + d3[0]);
+    if (t[0] !== 0 && t.every(function (x, j) { return j === 0 || x * t[0] === t[1] * t[j - 1]; })) add(t[n - 1] * t[1] / t[0]);
+    for (k = -9; k <= 9; k++) if (t.every(function (x, j) { return j < 2 || x === t[j - 1] + t[j - 2] + k; })) add(t[n - 1] + t[n - 2] + k);
+    if (t.every(function (x, j) { return j < 3 || x === t[j - 1] + t[j - 2] + t[j - 3]; })) add(t[n - 1] + t[n - 2] + t[n - 3]);
+    for (m = -4; m <= 4; m++) for (a = -12; a <= 12; a++) if (t.every(function (x, j) { return j === 0 || x === m * t[j - 1] + a; })) add(m * t[n - 1] + a);
+    return Object.keys(P).length !== 1;
+  }
 
   /* ================= WORD ================= */
   var word = [
@@ -404,14 +500,48 @@
       var cls = r.pick(ANAGRAMS.filter(function (c) { return c.length >= 2; })), two = pickN(r, cls, 2), base = two[0], ans = two[1], key = sortKey(base);
       var others = pickN(r, POOL.filter(function (w) { return sortKey(w) !== key && w.length >= base.length - 1 && w.length <= base.length + 1; }), 3);
       return { ask: 'Which word uses exactly the same letters as ' + base.toUpperCase() + '?', kind: 'choice', answer: ans, choices: r.shuffle([ans].concat(others)) };
+    }),
+    /* ---- harder word puzzles: scale with level (revat, swap and vowelmost start at 6, the rest at 9) ---- */
+    V('letterat2', 9, 99, function (r, d) {
+      var t = d - 8, w = r.pick(LONG), fromEnd = r.f() < 0.5, i = r.int(4, Math.min(w.length - 1, 5 + Math.ceil(t / 2)));
+      return { ask: 'What is the ' + ord(i) + ' letter' + (fromEnd ? ' from the end?' : '?'), big: w, kind: 'text', answer: fromEnd ? w[w.length - i] : w[i - 1], cls: 'word' };
+    }),
+    V('revat', 6, 99, function (r, d) {
+      var w = r.pick(POOL.filter(function (x) { return x.length >= 5 && x.length <= Math.min(10, 4 + d); })), i = r.int(2, Math.min(w.length, 3 + Math.floor(d / 2)));
+      return { ask: 'Read the word backwards. What is the ' + ord(i) + ' letter?', big: w, kind: 'text', answer: rev(w)[i - 1], cls: 'word' };
+    }),
+    V('swap', 6, 99, function (r, d) {
+      var w = r.pick(POOL.filter(function (x) { return x.length >= 4 && x.length <= Math.min(9, 4 + d) && x[0] !== x[x.length - 1]; }));
+      return { ask: 'Swap the first and last letters. What word do you get?', big: w, kind: 'text', answer: w[w.length - 1] + w.slice(1, -1) + w[0], cls: 'word' };
+    }),
+    V('vowelmost', 6, 99, function (r, d) {
+      var words, c, srt, ok;
+      do {
+        words = pickN(r, POOL.filter(function (x) { return x.length >= 5; }), 4); c = words.map(vowelCount); srt = c.slice().sort(function (a, b) { return b - a; });
+        ok = srt[0] > srt[1] && (d < 9 || srt[0] - srt[1] === 1);
+      } while (!ok);
+      return { ask: 'Which word has the most vowels (a, e, i, o, u)?', kind: 'choice', answer: words[c.indexOf(srt[0])], choices: words };
+    }),
+    V('dropvowels2', 9, 99, function (r, d) {
+      var w = r.pick(LONG), left = w.replace(/[aeiou]/g, ''), back = r.f() < 0.5;
+      return { ask: back ? 'Remove the vowels (a, e, i, o, u), then write what is left backwards' : 'Remove the vowels (a, e, i, o, u). What is left?', big: w, kind: 'text', answer: back ? rev(left) : left, cls: 'word' };
+    }),
+    V('countletter2', 9, 99, function (r, d) {
+      var t = d - 8, phrase, c, n, tries = 0;
+      do {
+        phrase = pickN(r, POOL.filter(function (w) { return w.length >= 5 && w.length <= 8; }), 3).join(' ');
+        c = r.pick(['e', 'a', 'o', 't', 'r', 's', 'l', 'i', 'n']);
+        n = phrase.split('').filter(function (x) { return x === c; }).length; tries++;
+      } while ((n < 3 || n > 4 + Math.min(4, Math.floor(t / 2))) && tries < 400);
+      return { ask: 'How many times does the letter ' + c.toUpperCase() + ' appear in all three words?', big: phrase, kind: 'num', answer: String(n), cls: 'word' };
     })
   ];
 
   /* ================= SPACE (new category) ================= */
   var DIRS = ['North', 'East', 'South', 'West'], ARROWS = ['↑', '→', '↓', '←'];
   var space = [
-    V('turns', 1, 8, function (r, d) {
-      var n = 2 + Math.floor(d / 3), h = r.int(0, 3), cur = h, steps = [], i, t;
+    V('turns', 1, 99, function (r, d) {
+      var n = Math.min(12, 2 + Math.floor(d / 3)), h = r.int(0, 3), cur = h, steps = [], i, t;
       for (i = 0; i < n; i++) {
         t = r.pick(d >= 4 ? ['right', 'left', 'around'] : ['right', 'left']);
         steps.push(t); cur = (cur + (t === 'right' ? 1 : t === 'left' ? 3 : 2)) % 4;
@@ -419,13 +549,13 @@
       var txt = steps.map(function (s) { return s === 'around' ? 'turn around' : 'turn ' + s; }).join(', then ');
       return { ask: 'You face ' + DIRS[h] + '. You ' + txt + '. Which way are you facing now?', visual: { kind: 'compass', deg: h * 90 }, kind: 'choice', answer: DIRS[cur], choices: r.shuffle(DIRS) };
     }),
-    V('path', 2, 8, function (r, d) {
-      var n = 2 + Math.floor(d / 2), x, y, parts, i, dir, k, ans, cands, opts;
+    V('path', 2, 99, function (r, d) {
+      var n = Math.min(10, 2 + Math.floor(d / 2)), kmax = d > 8 ? Math.min(9, 5 + Math.floor((d - 8) / 2)) : 5, x, y, parts, i, dir, k, ans, cands, opts;
       function fmt(a, b) { return '(' + a + ', ' + b + ')'; }
       do {
         x = 0; y = 0; parts = [];
         for (i = 0; i < n; i++) {
-          dir = r.pick(['up', 'down', 'left', 'right']); k = r.int(1, 5);
+          dir = r.pick(['up', 'down', 'left', 'right']); k = r.int(1, kmax);
           if (dir === 'up') y += k; else if (dir === 'down') y -= k; else if (dir === 'right') x += k; else x -= k;
           parts.push(dir + ' ' + k);
         }
@@ -435,8 +565,8 @@
       } while (opts.length < 4);
       return { ask: 'Start at (0, 0). Right is +x, up is +y. Move ' + parts.join(', ') + '. Where do you end up?', kind: 'choice', answer: ans, choices: opts };
     }),
-    V('rotate', 1, 6, function (r, d) {
-      var n = d <= 2 ? 2 : 3, cur = r.int(0, 3), start = cur, steps = [], i, t;
+    V('rotate', 1, 99, function (r, d) {
+      var n = d <= 2 ? 2 : Math.min(6, 3 + Math.floor(Math.max(0, d - 6) / 2)), cur = r.int(0, 3), start = cur, steps = [], i, t;
       for (i = 0; i < n; i++) {
         t = r.pick(['cw', 'ccw', 'half']);
         steps.push(t === 'cw' ? 'a quarter turn clockwise' : t === 'ccw' ? 'a quarter turn anticlockwise' : 'a half turn');
@@ -460,24 +590,42 @@
       opts = strOpts(r, ans, cands);
       return { ask: 'A clock shows ' + fmt(M) + '. You look at it in a mirror. What time does the reflection show?', visual: { kind: 'clock', h: h, m: m }, kind: 'choice', answer: ans, choices: opts };
     }),
-    V('cubes', 5, 8, function (r, d) {
-      var hi = d <= 6 ? 4 : 5, dims = [r.int(3, hi), r.int(3, hi), r.int(3, hi)].sort(function (x, y) { return x - y; }), kind = r.pick([0, 1, 2]), a = dims[0] - 2, b = dims[1] - 2, c = dims[2] - 2, ans;
+    V('cubes', 5, 99, function (r, d) {
+      var hi = d <= 6 ? 4 : Math.min(8, 5 + Math.floor(Math.max(0, d - 8) / 2)), dims = [r.int(3, hi), r.int(3, hi), r.int(3, hi)].sort(function (x, y) { return x - y; }), kind = r.pick([0, 1, 2]), a = dims[0] - 2, b = dims[1] - 2, c = dims[2] - 2, ans;
       ans = kind === 2 ? 4 * (a + b + c) : kind === 1 ? 2 * (a * b + a * c + b * c) : a * b * c;
-      return { ask: 'A ' + dims.join('×') + ' block is painted red on the outside, then cut into ' + (dims[0] * dims[1] * dims[2]) + ' small cubes. How many small cubes have exactly ' + kind + ' red face' + (kind === 1 ? '' : 's') + '?', big: '', visual: { kind: 'cube', a: dims[0], b: dims[1], c: dims[2] }, kind: 'num', answer: String(ans) };
+      return { ask: 'A ' + dims.join('×') + ' block is painted red on the outside, then cut into ' + (dims[0] * dims[1] * dims[2]) + ' small cubes. How many small cubes have exactly ' + kind + ' red face' + (kind === 1 ? '' : 's') + '?', big: '', visual: dims[2] <= 5 ? { kind: 'cube', a: dims[0], b: dims[1], c: dims[2] } : undefined, kind: 'num', answer: String(ans) };
     }),
-    V('squares', 4, 8, function (r, d) {
-      var hi = d <= 6 ? 4 : 5, a = r.int(2, hi), b = r.int(2, hi + 1), t, k, cnt = 0;
+    V('squares', 4, 99, function (r, d) {
+      var hi = d <= 6 ? 4 : Math.min(7, 5 + Math.floor(Math.max(0, d - 8) / 2)), a = r.int(2, hi), b = r.int(2, hi + 1), t, k, cnt = 0;
       if (a > b) { t = a; a = b; b = t; }
       if (r.f() < 0.5) {
         for (k = 1; k <= a; k++) cnt += (a - k + 1) * (b - k + 1);
-        return { ask: 'How many squares of any size can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: { kind: 'grid', w: b, h: a }, kind: 'num', answer: String(cnt) };
+        return { ask: 'How many squares of any size can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: b <= 6 ? { kind: 'grid', w: b, h: a } : undefined, kind: 'num', answer: String(cnt) };
       }
-      return { ask: 'How many rectangles of any size (squares count too) can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: { kind: 'grid', w: b, h: a }, kind: 'num', answer: String((a * (a + 1) / 2) * (b * (b + 1) / 2)) };
+      return { ask: 'How many rectangles of any size (squares count too) can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: b <= 6 ? { kind: 'grid', w: b, h: a } : undefined, kind: 'num', answer: String((a * (a + 1) / 2) * (b * (b + 1) / 2)) };
     }),
-    V('routes', 6, 8, function (r, d) {
-      var w = r.int(2, 5), h = r.int(2, 4);
+    V('routes', 6, 99, function (r, d) {
+      var more = Math.min(3, Math.floor(Math.max(0, d - 8) / 2)), w = r.int(2, 5 + more), h = r.int(2, 4 + Math.min(2, more));
       function f(a, b) { if (a === 0 || b === 0) return 1; return f(a - 1, b) + f(a, b - 1); }
-      return { ask: 'You can only move right or down along the lines. How many different shortest routes lead from the top-left corner to the bottom-right corner of a grid that is ' + w + ' squares wide and ' + h + ' squares tall?', big: '', visual: { kind: 'grid', w: w, h: h, routes: true }, kind: 'num', answer: String(f(w, h)) };
+      return { ask: 'You can only move right or down along the lines. How many different shortest routes lead from the top-left corner to the bottom-right corner of a grid that is ' + w + ' squares wide and ' + h + ' squares tall?', big: '', visual: w <= 5 && h <= 4 ? { kind: 'grid', w: w, h: h, routes: true } : undefined, kind: 'num', answer: String(f(w, h)) };
+    }),
+    V('dice2', 9, 99, function (r, d) {
+      var t = d - 8, n = Math.min(7, 3 + Math.floor(t / 2)), top, front, right, cur, steps = [], i, mv, ft;
+      do { top = r.int(1, 6); front = r.int(1, 6); right = r.int(1, 6); } while (top === front || top + front === 7 || top === right || top + right === 7 || front === right || front + right === 7);
+      cur = { top: top, front: front, right: right };
+      for (i = 0; i < n; i++) {
+        mv = r.pick(['forward', 'backward', 'right', 'left']); steps.push(mv);
+        if (mv === 'forward') cur = { top: cur.front, front: 7 - cur.top, right: cur.right };
+        else if (mv === 'backward') cur = { top: 7 - cur.front, front: cur.top, right: cur.right };
+        else if (mv === 'right') cur = { top: 7 - cur.right, front: cur.front, right: cur.top };
+        else cur = { top: cur.right, front: cur.front, right: 7 - cur.top };
+      }
+      return { ask: 'Opposite faces of a die add up to 7. The top shows ' + top + ', the face towards you shows ' + front + ' and the face on your right shows ' + right + '. Forward means away from you. Roll it one step: ' + steps.join(', ') + '. What is on top now?', big: '', visual: { kind: 'dice', top: top }, kind: 'num', answer: String(cur.top) };
+    }),
+    V('angle', 7, 99, function (r, d) {
+      var h = r.int(1, 12), m = d <= 10 ? 10 * r.int(0, 5) : 2 * r.int(0, 29), diff, ang;
+      do { h = r.int(1, 12); m = d <= 10 ? 10 * r.int(0, 5) : 2 * r.int(0, 29); diff = Math.abs((h % 12) * 30 + m * 0.5 - m * 6); ang = Math.min(diff, 360 - diff); } while (ang === 0);
+      return { ask: 'A clock shows ' + h + ':' + pad2(m) + '. The hour hand moves smoothly. What is the smaller angle between the two hands, in degrees?', big: '', visual: { kind: 'clock', h: h, m: m }, kind: 'num', answer: String(ang) };
     })
   ];
 
@@ -485,27 +633,33 @@
   var PHRASE_WORDS = ['the', 'and', 'sun', 'red', 'big', 'run', 'cold', 'warm', 'fast', 'blue', 'jump', 'tree', 'rain', 'gold', 'milk', 'door',
     'swim', 'cake', 'wind', 'path', 'bold', 'calm', 'quick', 'brown', 'green', 'river', 'light', 'storm', 'happy', 'lucky', 'under', 'above', 'track'];
   var typing = [
-    V('word', 1, 8, function (r, d) {
-      var w = r.pick(POOL.filter(function (x) { return x.length >= 3 + Math.floor(d / 2) && x.length <= 4 + d; }));
+    V('word', 1, 99, function (r, d) {
+      var w, k;
+      if (d > 8) {
+        k = Math.min(4, 2 + Math.floor((d - 8) / 4));
+        do { w = pickN(r, POOL.filter(function (x) { return x.length >= 6; }), k).join(' '); } while (w.length > 42);
+        return { ask: 'Type the words as fast as you can', big: w, kind: 'text', answer: w, cls: 'seq' };
+      }
+      w = r.pick(POOL.filter(function (x) { return x.length >= 3 + Math.floor(d / 2) && x.length <= 4 + d; }));
       return { ask: 'Type the word as fast as you can', big: w, kind: 'text', answer: w, cls: 'word' };
     }),
-    V('phrase', 2, 8, function (r, d) {
-      var n = d <= 4 ? 2 : (d <= 6 ? 3 : 4), ws = pickN(r, PHRASE_WORDS, n).join(' ');
+    V('phrase', 2, 99, function (r, d) {
+      var n = d <= 4 ? 2 : (d <= 6 ? 3 : Math.min(7, 4 + Math.floor(Math.max(0, d - 8) / 2))), ws = pickN(r, PHRASE_WORDS, n).join(' ');
       return { ask: 'Type the words, spaces included', big: ws, kind: 'text', answer: ws, cls: 'seq' };
     }),
-    V('mixed', 3, 8, function (r, d) {
-      var len = Math.min(8, 4 + Math.floor(d / 2)), chars = 'abcdefghjkmnpqrstuvwxyz23456789', s = '', i;
+    V('mixed', 3, 99, function (r, d) {
+      var len = Math.min(16, 4 + Math.floor(d / 2)), chars = 'abcdefghjkmnpqrstuvwxyz23456789', s = '', i;
       for (i = 0; i < len; i++) s += chars[r.int(0, chars.length - 1)];
       return { ask: 'Type the code exactly', big: s, kind: 'text', answer: s, cls: 'seq' };
     }),
-    V('digits', 1, 8, function (r, d) {
-      var len = Math.min(9, 4 + Math.floor((d + 1) / 2)), s = '', i;
+    V('digits', 1, 99, function (r, d) {
+      var len = Math.min(15, 4 + Math.floor((d + 1) / 2)), s = '', i;
       for (i = 0; i < len; i++) s += r.int(i ? 0 : 1, 9);
       return { ask: 'Type the number as fast as you can', big: s, kind: 'num', answer: s, cls: 'seq' };
     }),
-    V('doubles', 4, 8, function (r, d) {
-      var w = r.pick(POOL.filter(function (x) { return x.length >= 4 && x.length <= 4 + Math.ceil(d / 2); }));
-      return { ask: 'Type the word twice with a space between', big: w, kind: 'text', answer: w + ' ' + w, cls: 'word' };
+    V('doubles', 4, 99, function (r, d) {
+      var w = r.pick(POOL.filter(function (x) { return x.length >= 4 && x.length <= Math.min(9, 4 + Math.ceil(d / 2)); })), k = d >= 14 ? 4 : d >= 10 ? 3 : 2;
+      return { ask: 'Type the word ' + (k === 2 ? 'twice' : k === 3 ? 'three times' : 'four times') + ' with a space between', big: w, kind: 'text', answer: new Array(k + 1).join(w + ' ').trim(), cls: 'word' };
     })
   ];
 
@@ -542,9 +696,11 @@
     Object.keys(X.variants).forEach(function (key) {
       var list = X.variants[key], orig = GEN[key];
       GEN[key] = function (r, d) {
-        var v, q;
-        if (orig && r.f() >= mix) return orig(r, d);
-        v = r.pick(eligible(list, d));
+        var v, q, pool = list;
+        /* above level 8 the original generators have nothing left to offer (their pools stop at 8), except memory which scales */
+        if (d > 8) pool = list.filter(function (x) { return x.max >= 99; });
+        if (orig && (d <= 8 || key === 'memory') && r.f() >= mix) return orig(r, d);
+        v = r.pick(eligible(pool, d));
         q = v.gen(r, d);
         q.variant = key + '.' + v.id;
         if (key === 'typing') q.typing = true;
