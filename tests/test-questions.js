@@ -289,8 +289,8 @@ function checkShape(id, q) {
   if (q.ask.length > 260) bad('ask too long ' + q.ask.length);
   if (q.big && q.big.length > 42) bad('big too long ' + q.big.length);
   if (q.kind === 'num' && !/^\d+$/.test(q.answer)) bad('num answer must be non-negative digits');
-  if (q.kind === 'text' && !/^[a-z]+$/.test(q.answer) && !(id.indexOf('typing.') === 0 && /^[a-z0-9]+( [a-z0-9]+)*$/.test(q.answer))) bad('text answer must be lowercase letters');
-  if (q.kind === 'text' && q.answer.length > (id.indexOf('typing.') === 0 ? 24 : 12)) bad('text answer long');
+  if (q.kind === 'text' && !/^[a-z]+$/.test(q.answer) && !(/typing/.test(id) && /^[a-z0-9]+( [a-z0-9]+)*$/.test(q.answer))) bad('text answer must be lowercase letters');
+  if (q.kind === 'text' && q.answer.length > (/typing/.test(id) ? 24 : 12)) bad('text answer long');
   if (q.kind === 'choice') {
     if (!Array.isArray(q.choices) || q.choices.length < 3 || q.choices.length > 4) return bad('choices need 3-4 options (hint needs >=3)');
     if (q.choices.some(function (c, i) { return q.choices.indexOf(c) !== i; })) bad('duplicate choice');
@@ -300,6 +300,18 @@ function checkShape(id, q) {
   }
   if (q.flash && (!q.flash.text || !(q.flash.ms >= 800 && q.flash.ms <= 6000))) bad('flash ' + JSON.stringify(q.flash));
   if (q.cls === 'seq' && /^\d|^[A-Z],/.test(q.big || '') && !Array.isArray(q.terms) && /sequence|comes next/.test(q.ask)) bad('sequence needs terms');
+  if (q.visual) {
+    var v = q.visual, num = function (x) { return typeof x === 'number' && isFinite(x); };
+    var okv = { compass: num(v.deg) && v.deg % 90 === 0 && q.ask.indexOf('face ' + DIRS[v.deg / 90 % 4]) >= 0,
+      arrow: num(v.deg) && v.deg % 90 === 0 && q.ask.indexOf('points ' + ARR[v.deg / 90 % 4]) >= 0,
+      dice: v.top >= 1 && v.top <= 6 && q.ask.indexOf('top shows ' + v.top) >= 0,
+      clock: v.h >= 1 && v.h <= 12 && v.m >= 0 && v.m < 60 && q.ask.indexOf('shows ' + v.h + ':' + (v.m < 10 ? '0' : '') + v.m + '.') >= 0,
+      cube: [v.a, v.b, v.c].every(function (x) { return x >= 3 && x <= 5; }) && q.ask.indexOf(v.a + '×' + v.b + '×' + v.c) >= 0,
+      grid: v.w >= 2 && v.h >= 2 && v.w <= 8 && v.h <= 8 && (v.routes ? q.ask.indexOf(v.w + ' squares wide and ' + v.h + ' squares tall') >= 0 : q.ask.indexOf(v.h + ' × ' + v.w + ' grid') >= 0),
+      strip: num(v.k) && (v.back ? /backward/.test(q.ask) && q.ask.indexOf('step') > 0 : /forward/.test(q.ask)) && (function () { var kk = +q.ask.match(/(\d+) step/)[1]; return v.back ? v.k === 26 - kk : v.k === kk; })(),
+      pairs: Array.isArray(v.pairs) && v.pairs.length === 2 && v.pairs.every(function (p) { return q.ask.toLowerCase().indexOf(p[0] + ' → ' + p[1]) >= 0 || q.ask.indexOf(p[0].toUpperCase() + ' → ' + p[1].toUpperCase()) >= 0; }) };
+    if (!okv[v.kind]) bad('visual does not match question ' + JSON.stringify(v));
+  }
   if (Array.isArray(q.terms) && !q.terms.every(Number.isFinite)) bad('terms');
 }
 

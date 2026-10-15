@@ -247,14 +247,15 @@ J.slide=function(o){
 J.slideOpen=function(){return!!activeEnd};
 J.dismissSlide=function(){if(activeEnd)activeEnd()};
 
-var GLYPH={maths:'+ − ×',memory:'• • •',logic:'1 2 4 ?',word:'A → Z',space:'↑ → ↓',code:'A → D'};
+var GLYPH={maths:'+ − ×',memory:'• • •',logic:'1 2 4 ?',word:'A → Z',space:'↑ → ↓',code:'A → D',typing:'⌨ abc'};
 J.glyph=function(key){return GLYPH[key]||''};
 J.switchTo=function(o){
   var st=o.stage;S.sw();
   if(!fx())return 0;
   var el=st.querySelector('.jx-curtain');if(el)el.remove();
   el=document.createElement('div');el.className='jx-curtain';
-  el.innerHTML='<span class="k">Switch to</span><b>'+o.name.split('').map(function(ch,i){return'<span style="--i:'+i+'">'+esc(ch)+'</span>'}).join('')+'</b><span class="glyph">'+esc(o.glyph||'')+'</span>';
+  var ic=o.key&&g.SwitchVisuals?g.SwitchVisuals.icon(o.key,'big'):'';
+  el.innerHTML=ic+'<span class="k">Switch to</span><b>'+o.name.split('').map(function(ch,i){return'<span style="--i:'+i+'">'+esc(ch)+'</span>'}).join('')+'</b><span class="glyph">'+esc(o.glyph||'')+'</span>';
   st.appendChild(el);void el.offsetWidth;el.classList.add('go');
   setTimeout(function(){el.remove()},760);
   [].forEach.call(st.children,function(ch,i){if(!/jx-(curtain|pop|ring|slide)/.test(ch.className)){ch.style.setProperty('animation','jx-stagein .4s '+(.32+i*.05)+'s var(--jx-ease) both')}});

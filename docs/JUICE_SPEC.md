@@ -129,3 +129,16 @@ Game keys (set by the speed-game thread): Tab hint, Enter skip, Ctrl+Enter resta
 ## Revision 5
 
 Streak and double-points popup cards are now about the same length as the type-switch card: about 0.7 s in total (0.28 s pop in, about 0.25 s hold, 0.17 s out). Tap or Enter still ends it early. The length is `ms` on `Juice.slide` (default 520).
+
+## Revision 6: three new categories (Spatial, Code, Typing)
+
+Files: `visuals.js` (icons, puzzle pictures, typing card) and `visuals.css` are new; `themes.css`, `juice.js`, `juice.css` changed. Demo: `switch-juice-demo.html` (lab, "Seven categories" card, "Category gallery").
+
+- **Colours** (tokens `--space`, `--code`, `--typing`, set per look in `themes.css`): Classic #b794ff / #ff8ad8 / #6fa8ff. Jungle #d2b0ff / #ff9fcf / #86bcff. Cyber #a259ff / #ff63e6 / #4d8dff. Deep #b79bff / #ff9bd9 / #7ab8ff. Notebook #6b3fc0 / #b4247f / #1f5fc4. Classic matches `SwitchQuestions.CSS`.
+- **Icons:** `SwitchVisuals.icon(key, cls)` returns an inline line-icon SVG for all seven keys. Used in the type tag (`.ttype`), start-screen chips, results rows, lab, and the switch curtain (`Juice.switchTo` draws the big icon). Curtain glyph text: `Juice.glyph` has space `↑ → ↓`, code `A → D`, typing `⌨ abc`.
+- **Start screen:** `.cats` is a centred 4 + 3 chip grid (3 columns at 360 px or less). Results: seven rows, icon column 96 px. Keep the "Right in every type" badge on the original four types.
+- **Pictures:** a question may add `visual:{kind, ...}`; without it the text still works. `SwitchVisuals.render(visual)` returns an element to put in `#vis` (hide `#vis` when none). Kinds and fields: `compass{face,turns[]}`, `arrow{deg}`, `dice{faces[]}`, `clock{h,m,mirror}`, `grid{w,h,path|routes}`, `cube{n,cuts}`, `strip{shift,dir}` (cipher alphabet rows), `pairs{rows:[[in,out]]}`, `tiles{text}`. See the generators in `demo.src.html` (`GEN.space`, `GEN.code`) for exact shapes. **The puzzle thread needs to emit these fields** from the Spatial and Code generators.
+- **Typing card:** question sets `typing:true`. Markup: `.thead` row with type tag and `#speed` pill, `#big.big.typed`, `#tprog` bar, then the normal input. Call `SwitchVisuals.typing(bigEl,inputEl,target,{speedEl,progEl})` after building the input; it paints each letter `.tc.ok` (green), `.tc.bad` (red) or `.tc.cur` (caret), fills the bar and shows live WPM. Returns `{update,wpm}`; call `update()` from the existing input handler. Results show a "Fastest typing N WPM" chip from `g.bestWpm`.
+- **Merge order:** add `visuals.css` and `visuals.js` next to the juice files, add the three colour tokens per look (use `themes.css`), then follow `questions/README.md` step 2.
+
+Strip label: `strip` shows the real step count. Pass `k` as the forward offset (a back shift of 1 is `k:25,back:true`) or give `steps` directly; the label then reads "Back 1".

@@ -9,16 +9,15 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/juice.css">
 <link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/visuals.css">
 </head>
 <body>
 <div class="wrap">
   <section id="start">
     <div style="display:flex;flex-direction:column;gap:18px">
       <h1 class="logo" aria-label="Switch"><span style="--i:0">S</span><span style="--i:1">W</span><span style="--i:2">I</span><span style="--i:3">T</span><span style="--i:4">C</span><span style="--i:5">H</span></h1>
-      <p class="tag">Ninety seconds. Maths, memory, logic and wordplay, one after another. The puzzle type changes every few answers, so your head has to change with it.</p>
-      <div class="types" aria-hidden="true">
-        <div style="background:var(--maths)">Maths</div><div style="background:var(--memory)">Memory</div><div style="background:var(--logic)">Logic</div><div style="background:var(--word)">Words</div><div style="background:var(--space)">Space</div><div style="background:var(--code)">Code</div>
-      </div>
+      <p class="tag">Ninety seconds. Maths, memory, logic, words, spatial, code and typing, one after another. The puzzle type changes every few answers, so your head has to change with it.</p>
+      <div class="cats" id="cats" aria-hidden="true"></div>
       <div class="modes">
         <button class="btn" id="play">Play<small>90 seconds, new questions</small></button>
         <button class="btn alt" id="daily">Daily run<small id="dailyNote">same for everyone today</small></button>
@@ -60,10 +59,12 @@
       <div class="evt" id="evt" hidden><i id="evtFill"></i><span id="evtLbl">Double points</span><span id="evtTxt">10s</span></div>
       <div class="streak"><span>Streak <b id="streak">0</b> &nbsp; x<b id="mult">1.0</b><span class="jx-pips" id="pips"></span></span><span id="qn">Q1</span></div>
       <div class="stage" id="stage">
-        <span class="ttype" id="ttype">Maths</span>
+        <div class="thead"><span class="ttype" id="ttype">Maths</span><span class="speed" id="speed" hidden>0 WPM</span></div>
         <p class="ask" id="ask"></p>
+        <div id="vis"></div>
         <p class="hinttxt" id="hintTxt" hidden></p>
         <div class="big" id="big"></div>
+        <div class="tprog" id="tprog" hidden><i></i></div>
         <div id="inputZone"></div>
       </div>
       <div class="actrow">
@@ -103,6 +104,7 @@
 <script src="js/config.js"></script>
 <script src="js/leaderboard.js"></script>
 <script src="js/juice.js"></script>
+<script src="js/visuals.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/game.js"></script>
 </body>

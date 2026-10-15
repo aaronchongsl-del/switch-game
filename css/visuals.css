@@ -1,0 +1,72 @@
+/* Switch visuals: CSS for icons, puzzle pictures, cipher tiles and the typing card. Uses only the game's tokens. */
+.vi{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+.ttype{gap:7px;align-items:center}
+.ttype .vi{width:14px;height:14px}
+.thead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.speed{font:700 12px/1 var(--mono);letter-spacing:.06em;color:var(--c);border:1px solid var(--c);border-radius:99px;padding:6px 10px;white-space:nowrap}
+
+/* pictures */
+.vis{display:flex;justify-content:center;align-items:center;min-height:0}
+.vsvg{width:100%;max-width:190px;height:auto;display:block;overflow:visible}
+.vsvg .vring{fill:none;stroke:var(--c);stroke-width:3}
+.vsvg .vring.dim{opacity:.3}
+.vsvg .vtick line{stroke:var(--mute);stroke-width:1.5;opacity:.7}
+.vsvg .vt{fill:var(--mute);font:700 17px var(--mono)}
+.vsvg .vt.hot{fill:var(--c)}
+.vsvg .vt.sm{font-size:13px}
+.vsvg .vfill{fill:var(--c)}
+.vsvg .vfill.dim{fill:var(--mute);opacity:.45}
+.vsvg .vdot{fill:var(--c)}
+.vsvg .vdot.hollow{fill:var(--panel);stroke:var(--c);stroke-width:3}
+.vsvg .vface{fill:var(--ink);stroke:var(--c);stroke-width:4}
+.vsvg .vdice .vdot,.vdice .vdot{fill:var(--text)}
+.vsvg .vhand{stroke:var(--text);stroke-width:7;stroke-linecap:round}
+.vsvg .vhand.thin{stroke:var(--c);stroke-width:4}
+.vsvg .vgrid line{stroke:var(--c);stroke-width:2;opacity:.7}
+.vsvg .vpath{fill:none;stroke:var(--text);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.vsvg .cf{stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
+.vsvg .cf.t{fill:color-mix(in srgb,var(--c) 85%,var(--text))}
+.vsvg .cf.l{fill:color-mix(in srgb,var(--c) 62%,var(--ink))}
+.vsvg .cf.r{fill:color-mix(in srgb,var(--c) 42%,var(--ink))}
+.vsvg .vcut line{stroke:var(--ink);stroke-width:1.6;opacity:.85}
+.vgridsvg{max-width:210px}
+
+/* cipher tiles */
+.vtiles{display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.vtiles b{min-width:30px;height:36px;display:grid;place-items:center;border:2px solid var(--line);border-radius:6px;background:var(--ink);font:700 18px var(--mono);color:var(--text)}
+.vtiles.out b{border-color:var(--c);color:var(--c)}
+.vpairs{display:flex;flex-direction:column;gap:10px;align-items:center}
+.vpairs>div{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.vpairs i{font:700 20px var(--mono);color:var(--mute);font-style:normal}
+.vstrip{display:grid;gap:4px;font-family:var(--mono);max-width:100%}
+.vstrip>div{display:flex;gap:1px}
+.vstrip b{flex:1;min-width:0;text-align:center;font:700 clamp(8px,2.4vw,12px)/1.7 var(--mono);background:var(--ink);border-radius:3px;color:var(--text)}
+.vstrip .sh b{background:var(--c);color:var(--ink)}
+.vstrip .sh b.wrap{opacity:.65}
+.vstrip .vl{font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+
+/* typing card */
+.big.typed{font-family:var(--mono);font-weight:700;font-size:clamp(26px,8.2vw,42px);letter-spacing:.03em;line-height:1.35;text-transform:none;word-break:break-all}
+.tc{display:inline-block;color:var(--mute);opacity:.6;border-bottom:3px solid transparent;transition:color .06s}
+.tc.ok{color:var(--good);opacity:1}
+.tc.bad{color:var(--bad);opacity:1;border-bottom-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent);border-radius:3px}
+.tc.cur{opacity:1;color:var(--text);border-bottom-color:var(--c);animation:tc-blink 1s steps(1) infinite}
+@keyframes tc-blink{50%{border-bottom-color:transparent}}
+.tprog{height:6px;border-radius:99px;background:var(--ink);overflow:hidden}
+.tprog i{display:block;height:100%;width:0;background:var(--c);border-radius:99px;transition:width .08s linear}
+
+/* seven categories: 4 + 3 rows, last row centred */
+.cats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.cat{--c:var(--text);width:calc((100% - 24px)/4);min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:10px;background:var(--c);color:var(--ink);font:700 11px/1.1 var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.cat .vi{width:24px;height:24px}
+@media (max-width:360px){.cat{width:calc((100% - 16px)/3)}}
+
+/* category gallery */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.gcard{--c:var(--text);border:2px solid var(--c);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--panel);min-width:0}
+.gcard .ask{font-size:13px}
+.gcard .vsvg{max-width:130px}
+.gcard .big.typed{font-size:22px}
+@media (prefers-reduced-motion:reduce){.tc.cur{animation:none}.tprog i{transition:none}}
+.vis .vstrip{width:100%}
+.vstrip b{font-size:clamp(9px,2.8vw,13px)}

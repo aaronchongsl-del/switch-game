@@ -133,3 +133,7 @@
 .hud .rail.low i,.hud .rail[data-zone="low"] i{background:var(--bad)}
 .hud .rail i::after{content:"";position:absolute;right:0;top:0;bottom:0;width:6px;border-radius:99px;background:#fff;opacity:.85;box-shadow:0 0 10px 2px currentColor}
 .hud .rail::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(11.111% - 2px),rgba(0,0,0,.35) calc(11.111% - 2px) 11.111%)}
+
+.jx-curtain .vi.big{width:56px;height:56px;stroke-width:1.8;animation:jx-icon .45s var(--jx-ease) .12s both}
+@keyframes jx-icon{from{transform:scale(.3) rotate(-25deg);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.jx-curtain .vi.big{animation:none}}

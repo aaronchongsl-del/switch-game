@@ -11,7 +11,8 @@
   --logic:#9be564;
   --word:#ff7466;
   --space:#b79cff;
-  --code:#5fa8ff;
+  --code:#ff8ad8;
+  --typing:#6fa8ff;
   --good:#9be564;
   --bad:#ff7466;
   --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
@@ -28,7 +29,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--text);outline-o
 .label{font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 
 /* start */
-.logo{font-weight:800;font-size:clamp(64px,22vw,112px);line-height:.85;letter-spacing:-.04em;display:flex;gap:.04em;flex-wrap:wrap}
+.logo{font-weight:800;font-size:clamp(52px,17vw,112px);line-height:.85;letter-spacing:-.04em;display:flex;gap:.04em;flex-wrap:wrap}
 .logo span:nth-child(1){color:var(--maths)}.logo span:nth-child(2){color:var(--memory)}.logo span:nth-child(3){color:var(--logic)}.logo span:nth-child(4){color:var(--word)}.logo span:nth-child(5){color:var(--text)}.logo span:nth-child(6){color:var(--maths)}
 .tag{color:var(--mute);max-width:44ch;text-wrap:balance}
 .modes{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}

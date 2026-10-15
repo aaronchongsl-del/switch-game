@@ -431,7 +431,7 @@
         steps.push(t); cur = (cur + (t === 'right' ? 1 : t === 'left' ? 3 : 2)) % 4;
       }
       var txt = steps.map(function (s) { return s === 'around' ? 'turn around' : 'turn ' + s; }).join(', then ');
-      return { ask: 'You face ' + DIRS[h] + '. You ' + txt + '. Which way are you facing now?', kind: 'choice', answer: DIRS[cur], choices: r.shuffle(DIRS) };
+      return { ask: 'You face ' + DIRS[h] + '. You ' + txt + '. Which way are you facing now?', visual: { kind: 'compass', deg: h * 90 }, kind: 'choice', answer: DIRS[cur], choices: r.shuffle(DIRS) };
     }),
     V('path', 2, 8, function (r, d) {
       var n = 2 + Math.floor(d / 2), x, y, parts, i, dir, k, ans, cands, opts;
@@ -456,14 +456,14 @@
         steps.push(t === 'cw' ? 'a quarter turn clockwise' : t === 'ccw' ? 'a quarter turn anticlockwise' : 'a half turn');
         cur = (cur + (t === 'cw' ? 1 : t === 'ccw' ? 3 : 2)) % 4;
       }
-      return { ask: 'An arrow points ' + ARROWS[start] + '. Turn it ' + steps.join(', then ') + '. Which way does it point now?', kind: 'choice', answer: ARROWS[cur], choices: r.shuffle(ARROWS) };
+      return { ask: 'An arrow points ' + ARROWS[start] + '. Turn it ' + steps.join(', then ') + '. Which way does it point now?', visual: { kind: 'arrow', deg: start * 90 }, kind: 'choice', answer: ARROWS[cur], choices: r.shuffle(ARROWS) };
     }),
     V('dice', 1, 8, function (r, d) {
       var top = r.int(1, 6), front, askBottom = d <= 3 || r.f() < 0.5;
       do { front = r.int(1, 6); } while (front === top || front === 7 - top);
       var ask = 'Opposite faces of a die add up to 7. ' + (d <= 3 ? 'The top shows ' + top + '. What is on the bottom?'
         : 'The top shows ' + top + ' and the face towards you shows ' + front + '. What is on the ' + (askBottom ? 'bottom' : 'back') + '?');
-      return { ask: ask, big: '', kind: 'num', answer: String(7 - (d <= 3 || askBottom ? top : front)) };
+      return { ask: ask, big: '', visual: { kind: 'dice', top: top }, kind: 'num', answer: String(7 - (d <= 3 || askBottom ? top : front)) };
     }),
     V('clockmirror', 3, 8, function (r, d) {
       var h, m, M, mir, fmt, ans, cands, opts;
@@ -472,26 +472,26 @@
       ans = fmt(mir);
       cands = [fmt(M), fmt((M + 60) % 720), fmt((mir + 60) % 720), fmt((mir + 720 - 60) % 720), h + ':' + pad2((60 - m) % 60), fmt((720 - M + 30) % 720)];
       opts = strOpts(r, ans, cands);
-      return { ask: 'A clock shows ' + fmt(M) + '. You look at it in a mirror. What time does the reflection show?', kind: 'choice', answer: ans, choices: opts };
+      return { ask: 'A clock shows ' + fmt(M) + '. You look at it in a mirror. What time does the reflection show?', visual: { kind: 'clock', h: h, m: m }, kind: 'choice', answer: ans, choices: opts };
     }),
     V('cubes', 5, 8, function (r, d) {
       var hi = d <= 6 ? 4 : 5, dims = [r.int(3, hi), r.int(3, hi), r.int(3, hi)].sort(function (x, y) { return x - y; }), kind = r.pick([0, 1, 2]), a = dims[0] - 2, b = dims[1] - 2, c = dims[2] - 2, ans;
       ans = kind === 2 ? 4 * (a + b + c) : kind === 1 ? 2 * (a * b + a * c + b * c) : a * b * c;
-      return { ask: 'A ' + dims.join('×') + ' block is painted red on the outside, then cut into ' + (dims[0] * dims[1] * dims[2]) + ' small cubes. How many small cubes have exactly ' + kind + ' red face' + (kind === 1 ? '' : 's') + '?', big: '', kind: 'num', answer: String(ans) };
+      return { ask: 'A ' + dims.join('×') + ' block is painted red on the outside, then cut into ' + (dims[0] * dims[1] * dims[2]) + ' small cubes. How many small cubes have exactly ' + kind + ' red face' + (kind === 1 ? '' : 's') + '?', big: '', visual: { kind: 'cube', a: dims[0], b: dims[1], c: dims[2] }, kind: 'num', answer: String(ans) };
     }),
     V('squares', 4, 8, function (r, d) {
       var hi = d <= 6 ? 4 : 5, a = r.int(2, hi), b = r.int(2, hi + 1), t, k, cnt = 0;
       if (a > b) { t = a; a = b; b = t; }
       if (r.f() < 0.5) {
         for (k = 1; k <= a; k++) cnt += (a - k + 1) * (b - k + 1);
-        return { ask: 'How many squares of any size can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', kind: 'num', answer: String(cnt) };
+        return { ask: 'How many squares of any size can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: { kind: 'grid', w: b, h: a }, kind: 'num', answer: String(cnt) };
       }
-      return { ask: 'How many rectangles of any size (squares count too) can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', kind: 'num', answer: String((a * (a + 1) / 2) * (b * (b + 1) / 2)) };
+      return { ask: 'How many rectangles of any size (squares count too) can you find in a ' + a + ' × ' + b + ' grid of small squares?', big: '', visual: { kind: 'grid', w: b, h: a }, kind: 'num', answer: String((a * (a + 1) / 2) * (b * (b + 1) / 2)) };
     }),
     V('routes', 6, 8, function (r, d) {
       var w = r.int(2, 5), h = r.int(2, 4);
       function f(a, b) { if (a === 0 || b === 0) return 1; return f(a - 1, b) + f(a, b - 1); }
-      return { ask: 'You can only move right or down along the lines. How many different shortest routes lead from the top-left corner to the bottom-right corner of a grid that is ' + w + ' squares wide and ' + h + ' squares tall?', big: '', kind: 'num', answer: String(f(w, h)) };
+      return { ask: 'You can only move right or down along the lines. How many different shortest routes lead from the top-left corner to the bottom-right corner of a grid that is ' + w + ' squares wide and ' + h + ' squares tall?', big: '', visual: { kind: 'grid', w: w, h: h, routes: true }, kind: 'num', answer: String(f(w, h)) };
     })
   ];
 
@@ -506,11 +506,11 @@
   var code = [
     V('caesar', 1, 5, function (r, d) {
       var k = r.int(1, d <= 2 ? 1 : 3), w = r.pick(CODEWORDS.filter(function (x) { return noWrap(x, k) && x.length <= 4 + Math.ceil(d / 2); }));
-      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' forward in the alphabet (A becomes ' + L(k) + ')', big: w, kind: 'text', answer: shiftWord(w, k), cls: 'word' };
+      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' forward in the alphabet (A becomes ' + L(k) + ')', visual: { kind: 'strip', k: k, back: false }, big: w, kind: 'text', answer: shiftWord(w, k), cls: 'word' };
     }),
     V('caesarback', 4, 8, function (r, d) {
       var k = r.int(1, 3), w = r.pick(CODEWORDS.filter(function (x) { return noWrap(x, -k) && x.length <= 6; }));
-      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' backward in the alphabet (' + L(k) + ' becomes A)', big: w, kind: 'text', answer: shiftWord(w, -k), cls: 'word' };
+      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' backward in the alphabet (' + L(k) + ' becomes A)', visual: { kind: 'strip', k: 26 - k, back: true }, big: w, kind: 'text', answer: shiftWord(w, -k), cls: 'word' };
     }),
     V('example', 4, 8, function (r, d) {
       var fam = d >= 7 && r.f() < 0.5 ? 'atbash' : 'shift', k = r.int(1, 4), enc, ws, attempt;
@@ -519,7 +519,7 @@
         ws = pickN(r, CODEWORDS.filter(function (x) { return x.length <= 5; }), 3);
         if (fam === 'shift' && !ws.every(function (w) { return noWrap(w, k); })) continue;
         if (cipherAmbiguous([[ws[0], enc(ws[0])], [ws[1], enc(ws[1])]], ws[2], enc(ws[2]))) continue;
-        return { ask: 'A secret code changes letters the same way every time. ' + ws[0].toUpperCase() + ' → ' + enc(ws[0]).toUpperCase() + ', ' + ws[1].toUpperCase() + ' → ' + enc(ws[1]).toUpperCase() + '. What is ' + ws[2].toUpperCase() + ' in code?', big: '', kind: 'text', answer: enc(ws[2]) };
+        return { ask: 'A secret code changes letters the same way every time. ' + ws[0].toUpperCase() + ' → ' + enc(ws[0]).toUpperCase() + ', ' + ws[1].toUpperCase() + ' → ' + enc(ws[1]).toUpperCase() + '. What is ' + ws[2].toUpperCase() + ' in code?', visual: { kind: 'pairs', pairs: [[ws[0], enc(ws[0])], [ws[1], enc(ws[1])]] }, big: '', kind: 'text', answer: enc(ws[2]) };
       }
       return { ask: 'A secret code changes letters the same way every time. CAT → DBU, DOG → EPH. What is BAT in code?', big: '', kind: 'text', answer: 'cbu' };
     }),
@@ -643,6 +643,7 @@
         v = r.pick(eligible(list, d));
         q = v.gen(r, d);
         q.variant = key + '.' + v.id;
+        if (key === 'typing') q.typing = true;
         return q;
       };
     });

@@ -1,8 +1,10 @@
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
-var TYPES={maths:{n:'Maths',c:'var(--maths)'},memory:{n:'Memory',c:'var(--memory)'},logic:{n:'Logic',c:'var(--logic)'},word:{n:'Words',c:'var(--word)'},space:{n:'Space',c:'var(--space)'},code:{n:'Code',c:'var(--code)'}};
-var KEYS=['maths','memory','logic','word','space','code'];
+var TYPES={maths:{n:'Maths',c:'var(--maths)'},memory:{n:'Memory',c:'var(--memory)'},logic:{n:'Logic',c:'var(--logic)'},word:{n:'Words',c:'var(--word)'},space:{n:'Spatial',c:'var(--space)'},code:{n:'Code',c:'var(--code)'},typing:{n:'Typing',c:'var(--typing)'}};
+var KEYS=['maths','memory','logic','word','space','code','typing'];
+var VIS=window.SwitchVisuals;
+function ico(k){return VIS?VIS.icon(k):''}
 var RUN=90, PENALTY=2;
 
 /* ---------- storage ---------- */
@@ -203,7 +205,7 @@ var BADGES=[
  {id:'memory',n:'Memory palace',d:'4+ memory, no misses',t:function(r){return r.per.memory.ok>=4&&r.per.memory.bad===0}},
  {id:'logic',n:'Pattern hunter',d:'5+ logic, no misses',t:function(r){return r.per.logic.ok>=5&&r.per.logic.bad===0}},
  {id:'word',n:'Wordsmith',d:'5+ words, no misses',t:function(r){return r.per.word.ok>=5&&r.per.word.bad===0}},
- {id:'all',n:'All rounder',d:'Right in every type',t:function(r){return KEYS.every(function(k){return r.per[k].ok>=2})}},
+ {id:'all',n:'All rounder',d:'Right in every type',t:function(r){return ['maths','memory','logic','word'].every(function(k){return r.per[k].ok>=2})}},
  {id:'nohint',n:'Pure mind',d:'15+ right, no hints',t:function(r){return r.ok>=15&&r.hintsUsed===0}},
  {id:'daily',n:'Daily regular',d:'Finish a daily run',t:function(r){return r.mode==='daily'}}
 ];
@@ -229,7 +231,7 @@ function optsHtml(){
 }
 function syncOpts(){
   var lv=lvlOf(db.xp);
-  document.querySelectorAll('[data-skin]').forEach(function(b){
+  document.querySelectorAll('.tchip[data-skin]').forEach(function(b){
     var s=SKINS.filter(function(x){return x.id===b.dataset.skin})[0],ok=lv>=s.lv;
     b.disabled=!ok;b.setAttribute('aria-pressed',String(b.dataset.skin===db.skin));b.querySelector('small').textContent=ok?s.d:'Unlocks at level '+s.lv;
   });
@@ -254,6 +256,7 @@ function closeSheet(){$('sheet').hidden=true;if(g){g.menu=false;g.last=performan
 
 /* ---------- start screen ---------- */
 function renderStart(){
+  $('cats').innerHTML=KEYS.map(function(k){return '<div class="cat" style="--c:'+TYPES[k].c+'">'+ico(k)+TYPES[k].n+'</div>'}).join('');
   var l=lvlOf(db.xp),lo=xpFor(l),hi=xpFor(l+1);
   $('lvl').textContent='Level '+l+' · '+rankName(l);$('xpTxt').textContent=db.xp+' / '+hi+' XP';
   $('xpBar').style.width=Math.round((db.xp-lo)/(hi-lo)*100)+'%';
@@ -272,7 +275,7 @@ function renderRatings(){
   var weakest=null,wr=101;
   KEYS.forEach(function(k){var st=db.stats[k],n=st.ok+st.bad;if(n>=10){var a=st.ok/n*100;if(a<wr){wr=a;weakest=k}}});
   $('ratings').innerHTML=KEYS.map(function(k){var st=db.stats[k],n=st.ok+st.bad,pc=n?Math.round(st.ok/n*100)+'%':'-';
-    return '<button class="rate" data-train="'+k+'" style="--c:'+TYPES[k].c+'"><span class="rn">'+TYPES[k].n+'</span><b class="mono">'+pc+'</b><span class="rs">'+(k===weakest?'Weakest. ':'')+'Train</span></button>'}).join('');
+    return '<button class="rate" data-train="'+k+'" style="--c:'+TYPES[k].c+'"><span class="rn">'+ico(k)+TYPES[k].n+'</span><b class="mono">'+pc+'</b><span class="rs">'+(k===weakest?'Weakest. ':'')+'Train</span></button>'}).join('');
 }
 var boardTab='all';
 function localRows(){
@@ -302,7 +305,7 @@ function startRun(mode,focus){
   var seed=mode==='daily'?'daily-'+today():'run-'+Date.now()+'-'+Math.random(),per={};
   KEYS.forEach(function(k){per[k]={ok:0,bad:0}});
   g={hints:3,hintsUsed:0,mode:mode,focus:focus||null,clock:0,hardLeft:0,doubleUntil:0,chaos:rngFrom(seed+':chaos'),nextEvt:0,seed:seed,
-     left:RUN,last:performance.now(),paused:false,menu:false,locked:false,score:0,shown:0,streak:0,bestStreak:0,ok:0,bad:0,qi:0,per:per,
+     left:RUN,last:performance.now(),paused:false,menu:false,locked:false,score:0,shown:0,streak:0,bestStreak:0,bestWpm:0,ok:0,bad:0,qi:0,per:per,
      bag:[],log:[],pending:[],cur:null,type:null,blockLeft:0,q:null,qStart:0,done:false,saved:false,lastSec:99,order:rngFrom(seed+':order')};
   g.nextEvt=18+g.chaos.int(0,6);
   $('evt').hidden=true;$('scoreN').textContent='0';$('time').textContent=RUN;$('railFill').style.width='100%';$('rail').dataset.zone='good';
@@ -334,8 +337,9 @@ function nextQ(){
   var r=rngFrom(g.seed+':q'+g.qi),q=GEN[g.type](r,diff());
   q.type=g.type;q.hard=g.hardLeft>0;if(g.hardLeft>0)g.hardLeft--;g.q=q;g.qi++;
   var T=TYPES[g.type];
-  stage.style.setProperty('--c',T.c);$('ttype').textContent=T.n;$('qn').textContent='Q'+g.qi;
+  stage.style.setProperty('--c',T.c);$('ttype').innerHTML=ico(g.type)+esc(T.n);$('qn').textContent='Q'+g.qi;
   $('ask').textContent=q.ask;$('hintTxt').hidden=true;
+  $('vis').innerHTML=(q.visual&&VIS)?VIS.render(q.visual):'';$('speed').hidden=$('tprog').hidden=!q.typing;if(q.typing)$('tprog').firstElementChild.style.width='0';
   var big=$('big');big.className='big'+(q.cls?' '+q.cls:'');big.textContent=q.big||'';
   updHints();
   $('inputZone').innerHTML='';g.locked=true;g.paused=true;
@@ -364,6 +368,7 @@ function buildInput(q){
   }else{
     z.innerHTML='<input class="ans" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Your answer" '+(q.kind==='num'?'inputmode="numeric" ':'')+'>';
     var inp=$('ans');
+    if(q.typing&&VIS)q._t=VIS.typing($('big'),inp,q.answer,{speedEl:$('speed'),progEl:$('tprog')});
     inp.addEventListener('input',function(){
       var v=inp.value.trim().toLowerCase();if(!v)return;
       if(q.kind==='num'&&!/^-?\d*$/.test(v)){inp.value=v.replace(/[^\d-]/g,'');return}
@@ -390,7 +395,7 @@ function submit(v,btn){
   logAnswer(q,String(v),right,false);
   if(btn)btn.classList.add(right?'jx-right':'jx-wrong');
   if(right){
-    g.streak++;g.bestStreak=Math.max(g.bestStreak,g.streak);g.ok++;g.per[q.type].ok++;
+    g.streak++;g.bestStreak=Math.max(g.bestStreak,g.streak);g.ok++;g.per[q.type].ok++;if(q._t)g.bestWpm=Math.max(g.bestWpm,q._t.wpm());
     var speed=q.hinted?0:Math.max(0,Math.round(40-ms/100));
     var factor=(g.clock<g.doubleUntil?2:1)*(q.hard?1.5:1)*(q.hinted?.5:1);
     var pts=Math.round((Math.round(100*mult(g.streak))+speed)*factor);
@@ -506,8 +511,9 @@ function finish(){
   $('rLvl').textContent='Level '+lvBefore+' · '+rankName(lvBefore);$('rXp').textContent=xpBefore+' XP';
   var xb=$('rXpBar');xb.style.transition='none';xb.style.width=Math.round(oldPct*100)+'%';
   $('rTypes').innerHTML=KEYS.map(function(k,i){var p=g.per[k],n=p.ok+p.bad,pc=n?Math.round(p.ok/n*100):0;
-    return '<div class="row" style="--c:'+TYPES[k].c+';--i:'+i+'"><span style="color:'+TYPES[k].c+'">'+TYPES[k].n+'</span><div class="bar"><i style="width:'+(Juice.enabled?0:pc)+'%" data-w="'+pc+'"></i></div><span>'+p.ok+'/'+n+'</span></div>'}).join('');
+    return '<div class="row" style="--c:'+TYPES[k].c+';--i:'+i+'"><span style="color:'+TYPES[k].c+';display:flex;gap:6px;align-items:center">'+ico(k)+TYPES[k].n+'</span><div class="bar"><i style="width:'+(Juice.enabled?0:pc)+'%" data-w="'+pc+'"></i></div><span>'+p.ok+'/'+n+'</span></div>'}).join('');
   var chips=['+'+gain+' XP'];
+  if(g.bestWpm)chips.push('Fastest typing '+g.bestWpm+' WPM');
   if(g.mode==='daily')chips.push('Daily streak: '+streakNow()+' day'+(streakNow()===1?'':'s'));
   if(lvAfter>lvBefore)chips.push('Level '+lvAfter+' reached');
   got.forEach(function(n){chips.push('Badge: '+n)});

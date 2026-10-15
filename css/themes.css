@@ -11,7 +11,7 @@ body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:0
 
 /* ================= JUNGLE: canopy light, fronds, fireflies, leaf-shaped cards ================= */
 :root[data-skin="jungle"]{--ink:#07180f;--panel:#0f2c1c;--line:#27603a;--text:#f3f7e6;--mute:#9fc09e;
-  --maths:#ffd24a;--memory:#4fe3c1;--logic:#b4f24a;--word:#ff9560;--good:#b4f24a;--bad:#ff7a59;
+  --maths:#ffd24a;--memory:#4fe3c1;--logic:#b4f24a;--word:#ff9560;--good:#b4f24a;--bad:#ff7a59;--space:#d2b0ff;--code:#ff9fcf;--typing:#86bcff;
   --display:'Lilita One','Bricolage Grotesque',system-ui,sans-serif;--jx-shape:leaf;--jx-p1:#46b15a;--jx-p2:#2a9d57;
   --slide-bg:radial-gradient(120% 80% at 50% 0%,rgba(255,226,130,.16),transparent 60%),var(--panel)}
 :root[data-skin="jungle"] body{background:radial-gradient(90% 50% at 50% -10%,rgba(255,226,130,.26),transparent 65%),radial-gradient(60% 45% at 0 100%,rgba(26,120,66,.5),transparent 70%),radial-gradient(60% 45% at 100% 100%,rgba(10,90,55,.45),transparent 70%),var(--ink)}
@@ -32,7 +32,7 @@ body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:0
 
 /* ================= CYBERPUNK: neon grid floor, skyline, scanlines, notched cards ================= */
 :root[data-skin="cyber"]{--ink:#07040f;--panel:#0e0a1d;--line:#3a2270;--text:#e8fbff;--mute:#8e8ac0;
-  --maths:#fcee09;--memory:#00f0ff;--logic:#00ff9c;--word:#ff2a6d;--good:#00ff9c;--bad:#ff2a6d;
+  --maths:#fcee09;--memory:#00f0ff;--logic:#00ff9c;--word:#ff2a6d;--good:#00ff9c;--bad:#ff2a6d;--space:#a259ff;--code:#ff63e6;--typing:#4d8dff;
   --display:'Orbitron','Bricolage Grotesque',system-ui,sans-serif;--mono:'Share Tech Mono','JetBrains Mono',ui-monospace,monospace;
   --jx-shape:glitch;--jx-p1:#ff2a6d;--jx-p2:#00f0ff;
   --slide-bg:repeating-linear-gradient(0deg,rgba(0,240,255,.06) 0 2px,transparent 2px 4px),linear-gradient(180deg,#120a2e,var(--panel))}
@@ -58,7 +58,7 @@ body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:0
 
 /* ================= DEEP SEA: light rays, drifting bubbles, soft round cards ================= */
 :root[data-skin="deep"]{--ink:#031624;--panel:#08293f;--line:#17607f;--text:#e6f8ff;--mute:#82b4cc;
-  --maths:#ffd479;--memory:#5ef2e6;--logic:#8dffb0;--word:#ff86ab;--good:#8dffb0;--bad:#ff86ab;
+  --maths:#ffd479;--memory:#5ef2e6;--logic:#8dffb0;--word:#ff86ab;--good:#8dffb0;--bad:#ff86ab;--space:#b79bff;--code:#ff9bd9;--typing:#7ab8ff;
   --display:'Quicksand','Bricolage Grotesque',system-ui,sans-serif;--jx-shape:bubble;--jx-p1:#bff3ff;--jx-p2:#5ef2e6;
   --slide-bg:radial-gradient(100% 70% at 50% 0%,rgba(94,242,230,.18),transparent 70%),var(--panel)}
 :root[data-skin="deep"] body{background:linear-gradient(180deg,#0d557f 0%,#073a5c 28%,#031d30 65%,#010a12 100%) fixed;background-color:var(--ink)}
@@ -78,7 +78,7 @@ body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:0
 
 /* ================= NOTEBOOK: graph paper, marker pens, taped cards (light) ================= */
 :root[data-skin="notebook"]{color-scheme:light;--ink:#f3f6fc;--panel:#ffffff;--line:#c3cde6;--text:#1b2559;--mute:#5b6692;
-  --maths:#d9480f;--memory:#0b7285;--logic:#2b8a3e;--word:#c2255c;--good:#2b8a3e;--bad:#c2255c;
+  --maths:#d9480f;--memory:#0b7285;--logic:#2b8a3e;--word:#c2255c;--good:#2b8a3e;--bad:#c2255c;--space:#6b3fc0;--code:#b4247f;--typing:#1f5fc4;
   --display:'Patrick Hand','Bricolage Grotesque',system-ui,sans-serif;--jx-shape:ink;--jx-p1:#1b2559;--jx-p2:#5c7cfa;
   --slide-bg:repeating-linear-gradient(0deg,rgba(60,100,200,.14) 0 1px,transparent 1px 26px),#fffdf2}
 :root[data-skin="notebook"] body{background:linear-gradient(rgba(60,100,200,.17) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,rgba(60,100,200,.17) 1px,transparent 1px) 0 0/24px 24px,var(--ink)}
@@ -102,9 +102,3 @@ body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:0
   :root[data-skin] body::before,:root[data-skin] body::after,:root[data-skin="cyber"] .logo,:root[data-skin="cyber"] .jx-slide .s-t{animation:none!important}
 }
 @media (max-width:420px){:root[data-skin="jungle"] body::before{opacity:.4}}
-
-/* extra puzzle-type colours per look */
-:root[data-skin="jungle"]{--space:#d6b6ff;--code:#7fd0ff}
-:root[data-skin="deep"]{--space:#c3b0ff;--code:#7fb8ff}
-:root[data-skin="cyber"]{--space:#b36bff;--code:#3d8bff}
-:root[data-skin="notebook"]{--space:#6741d9;--code:#1864ab}
