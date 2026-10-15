@@ -197,11 +197,6 @@ SOLVE['word.palin'] = function (q) { var p = q.choices.filter(function (w) { ret
 SOLVE['word.doubled'] = function (q) { var p = q.choices.filter(function (w) { for (var i = 1; i < w.length; i++) if (w[i] === w[i - 1]) return true; return false; }); return p.length === 1 ? p[0] : 'AMBIG'; };
 SOLVE['word.longest'] = function (q) { var m = Math.max.apply(null, q.choices.map(function (w) { return w.length; })), p = q.choices.filter(function (w) { return w.length === m; }); return p.length === 1 ? p[0] : 'AMBIG'; };
 SOLVE['word.countletter'] = function (q) { var c = q.ask.match(/letter (\w)/)[1].toLowerCase(); return String(q.big.split('').filter(function (x) { return x === c; }).length); };
-SOLVE['word.shiftletter'] = function (q) {
-  var m;
-  if ((m = q.ask.match(/= 1, B = 2, C = 3 and so on\. What is (\w) \+ (\w)\?/))) return String(lp(m[1]) + 1 + lp(m[2]) + 1);
-  m = q.ask.match(/(\d+) steps (after|before) (\w)/); return L(lp(m[3]) + (m[2] === 'after' ? 1 : -1) * +m[1]).toLowerCase();
-};
 SOLVE['word.anagramfind'] = function (q) {
   var base = q.ask.match(/as (\w+)\?/)[1].toLowerCase(), key = base.split('').sort().join('');
   var p = q.choices.filter(function (w) { return w.split('').sort().join('') === key && w !== base; }); return p.length === 1 ? p[0] : 'AMBIG';
@@ -248,36 +243,6 @@ SOLVE['space.routes'] = function (q) {
 
 SOLVE['typing.word'] = SOLVE['typing.phrase'] = SOLVE['typing.mixed'] = SOLVE['typing.digits'] = function (q) { return q.big; };
 SOLVE['typing.doubles'] = function (q) { return q.big + ' ' + q.big; };
-SOLVE['code.caesar'] = function (q) { var k = nums(q.ask)[0]; return q.big.split('').map(function (c) { return String.fromCharCode(97 + (c.charCodeAt(0) - 97 + k)); }).join(''); };
-SOLVE['code.caesarback'] = function (q) { var k = nums(q.ask)[0]; return q.big.split('').map(function (c) { return String.fromCharCode(97 + (c.charCodeAt(0) - 97 - k)); }).join(''); };
-SOLVE['code.example'] = function (q) {
-  var m = q.ask.match(/(\w+) → (\w+), (\w+) → (\w+)\. What is (\w+) in code/), ex = [[m[1].toLowerCase(), m[2].toLowerCase()], [m[3].toLowerCase(), m[4].toLowerCase()]], t = m[5].toLowerCase(), preds = {};
-  var k; for (k = 1; k <= 25; k++) if (ex.every(function (e) { return I.shiftWord(e[0], k) === e[1]; })) preds[I.shiftWord(t, k)] = 1;
-  if (ex.every(function (e) { return I.atbash(e[0]) === e[1]; })) preds[I.atbash(t)] = 1;
-  /* letter-by-letter substitution (any cipher): the target must be fully determined by the examples or by a rule family */
-  var ks = Object.keys(preds); return ks.length === 1 ? ks[0] : 'AMBIG:' + ks;
-};
-SOLVE['code.symbolval'] = function (q) {
-  var m = q.ask.match(/(.) = (\d+),\s+(.) = (\d+),\s+(.) = (\d+)/), v = {}; v[m[1]] = m[2]; v[m[3]] = m[4]; v[m[5]] = m[6];
-  var r = ev(q.big.replace(/[★▲●■◆]/g, function (s) { return v[s]; })); return r > 0 && Number.isInteger(r) ? String(r) : 'BAD'; };
-SOLVE['code.steps'] = function (q) {
-  var parts = q.ask.replace(/ What do you get\?$/, '').split('. ').map(function (s) { return s.replace(/\.$/, ''); }), x = +parts.shift().match(/\d+/)[0];
-  parts.forEach(function (p) {
-    if (p === 'Double it') x *= 2; else if (p === 'Triple it') x *= 3; else if (p === 'Halve it') { if (x % 2) x = NaN; else x /= 2; } else if (p === 'Square it') x *= x;
-    else if (/^Add/.test(p)) x += nums(p)[0]; else if (/^Subtract/.test(p)) x -= nums(p)[0]; else x = NaN;
-  });
-  return Number.isInteger(x) && x > 0 ? String(x) : 'BAD:' + x;
-};
-SOLVE['code.wordops'] = function (q) {
-  var ops = q.ask.replace('Take the word below: ', '').replace(/\. What do you end up with\?$/, '').split(', then '), w = q.big;
-  ops.forEach(function (o) {
-    if (o === 'reverse it') w = w.split('').reverse().join(''); else if (o === 'drop the first letter') w = w.slice(1); else if (o === 'drop the last letter') w = w.slice(0, -1);
-    else if (o === 'move the first letter to the end') w = w.slice(1) + w[0]; else w = '??';
-  });
-  return w;
-};
-SOLVE['code.digitcode'] = function (q) { var k = nums(q.ask)[0]; return q.big.split('').map(function (c) { return (+c + k) % 10; }).join(''); };
-
 /* ---- run ---- */
 var stats = {}, shapeProblems = 0;
 function checkShape(id, q) {
@@ -347,7 +312,7 @@ if (gamePath && fs.existsSync(gamePath)) {
   var code = html.slice(a, b) + '\nreturn {GEN:GEN,rngFrom:rngFrom,WORDS:WORDS};';
   var G = Function(code)();
   X.install(G.GEN);
-  var KEYS = ['maths', 'memory', 'logic', 'word', 'space', 'code', 'typing'], ncalls = 0, newShare = {};
+  var KEYS = ['maths', 'memory', 'logic', 'word', 'space', 'typing'], ncalls = 0, newShare = {};
   KEYS.forEach(function (k) { newShare[k] = [0, 0]; for (var d = 1; d <= 8; d++) for (var i = 0; i < 400; i++) { var q; try { q = G.GEN[k](G.rngFrom('i:' + k + d + i), d); } catch (e) { fail('install.' + k, 'THROW ' + e.message + ' d=' + d, {}); continue; } ncalls++; checkShape(q.variant ? 'install.' + k : 'EXISTING-GAME.' + k, q); newShare[k][1]++; if (q.variant) newShare[k][0]++; } });
   console.log('integration with game generators:', ncalls, 'questions; share from new variants:', KEYS.map(function (k) { return k + ' ' + Math.round(100 * newShare[k][0] / newShare[k][1]) + '%'; }).join(', '));
 }

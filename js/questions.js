@@ -1,12 +1,12 @@
 /* Switch question bank expansion.
  *
  * Drop-in module. Adds new puzzle variants to the four existing categories (maths, memory,
- * logic, word) and two new categories (space, code). Same generator contract as the game:
+ * logic, word) and two new categories (space, typing). Same generator contract as the game:
  *   gen(r, d) -> {ask, big, kind, answer, choices, flash, cls, terms}
  * where r is the game's seeded rng ({f, int, pick, shuffle}) and d is difficulty 1..8.
  *
  * Usage (inside the game script, after GEN is defined):
- *   SwitchQuestions.install(GEN);            // wraps GEN.maths/.memory/.logic/.word, adds GEN.space/.code
+ *   SwitchQuestions.install(GEN);            // wraps GEN.maths/.memory/.logic/.word, adds GEN.space/.typing
  * See README.md next to this file for the full plug-in checklist.
  *
  * Rules every variant follows:
@@ -406,14 +406,6 @@
       } while ((n < 1 || n > 5) && tries < 200);
       return { ask: 'How many times does the letter ' + c.toUpperCase() + ' appear?', big: phrase, kind: 'choice', answer: String(n), choices: numOpts(r, n, [n - 2, n - 1, n + 1, n + 2], 0), cls: 'word' };
     }),
-    V('shiftletter', 3, 8, function (r, d) {
-      if (r.f() < 0.4 && d >= 5) {
-        var x = r.int(0, 25), y = r.int(0, 25);
-        return { ask: 'A = 1, B = 2, C = 3 and so on. What is ' + L(x) + ' + ' + L(y) + '?', big: '', kind: 'num', answer: String(x + y + 2) };
-      }
-      var k = r.int(2, 3 + d), fwd = r.f() < 0.5, i = fwd ? r.int(0, 25 - k) : r.int(k, 25);
-      return { ask: 'Which letter is ' + k + ' steps ' + (fwd ? 'after ' : 'before ') + L(i) + ' in the alphabet?', big: '', kind: 'text', answer: L(fwd ? i + k : i - k).toLowerCase() };
-    }),
     V('anagramfind', 3, 8, function (r, d) {
       var cls = r.pick(ANAGRAMS.filter(function (c) { return c.length >= 2; })), two = pickN(r, cls, 2), base = two[0], ans = two[1], key = sortKey(base);
       var others = pickN(r, POOL.filter(function (w) { return sortKey(w) !== key && w.length >= base.length - 1 && w.length <= base.length + 1; }), 3);
@@ -495,79 +487,6 @@
     })
   ];
 
-  /* ================= CODE (new category) ================= */
-  function shiftWord(w, k) {
-    return w.split('').map(function (c) { return String.fromCharCode(97 + (((c.charCodeAt(0) - 97 + k) % 26) + 26) % 26); }).join('');
-  }
-  function atbash(w) { return w.split('').map(function (c) { return String.fromCharCode(97 + 25 - (c.charCodeAt(0) - 97)); }).join(''); }
-  function noWrap(w, k) { return w.split('').every(function (c) { var i = c.charCodeAt(0) - 97 + k; return i >= 0 && i <= 25; }); }
-  var CODEWORDS = POOL.filter(function (w) { return w.length >= 3 && w.length <= 6; }).concat(SHORT.filter(function (w) { return w.length >= 3; }));
-
-  var code = [
-    V('caesar', 1, 5, function (r, d) {
-      var k = r.int(1, d <= 2 ? 1 : 3), w = r.pick(CODEWORDS.filter(function (x) { return noWrap(x, k) && x.length <= 4 + Math.ceil(d / 2); }));
-      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' forward in the alphabet (A becomes ' + L(k) + ')', visual: { kind: 'strip', k: k, back: false }, big: w, kind: 'text', answer: shiftWord(w, k), cls: 'word' };
-    }),
-    V('caesarback', 4, 8, function (r, d) {
-      var k = r.int(1, 3), w = r.pick(CODEWORDS.filter(function (x) { return noWrap(x, -k) && x.length <= 6; }));
-      return { ask: 'Move every letter ' + k + ' step' + (k === 1 ? '' : 's') + ' backward in the alphabet (' + L(k) + ' becomes A)', visual: { kind: 'strip', k: 26 - k, back: true }, big: w, kind: 'text', answer: shiftWord(w, -k), cls: 'word' };
-    }),
-    V('example', 4, 8, function (r, d) {
-      var fam = d >= 7 && r.f() < 0.5 ? 'atbash' : 'shift', k = r.int(1, 4), enc, ws, attempt;
-      enc = fam === 'atbash' ? atbash : function (w) { return shiftWord(w, k); };
-      for (attempt = 0; attempt < 300; attempt++) {
-        ws = pickN(r, CODEWORDS.filter(function (x) { return x.length <= 5; }), 3);
-        if (fam === 'shift' && !ws.every(function (w) { return noWrap(w, k); })) continue;
-        if (cipherAmbiguous([[ws[0], enc(ws[0])], [ws[1], enc(ws[1])]], ws[2], enc(ws[2]))) continue;
-        return { ask: 'A secret code changes letters the same way every time. ' + ws[0].toUpperCase() + ' → ' + enc(ws[0]).toUpperCase() + ', ' + ws[1].toUpperCase() + ' → ' + enc(ws[1]).toUpperCase() + '. What is ' + ws[2].toUpperCase() + ' in code?', visual: { kind: 'pairs', pairs: [[ws[0], enc(ws[0])], [ws[1], enc(ws[1])]] }, big: '', kind: 'text', answer: enc(ws[2]) };
-      }
-      return { ask: 'A secret code changes letters the same way every time. CAT → DBU, DOG → EPH. What is BAT in code?', big: '', kind: 'text', answer: 'cbu' };
-    }),
-    V('symbolval', 2, 8, function (r, d) {
-      var S = pickN(r, ['★', '▲', '●', '■', '◆'], 3), v = distinctInts(r, 3, 2, 3 + d * 2), big, ans;
-      if (d <= 4 || r.f() < 0.5) { big = S[0] + ' + ' + S[1] + ' + ' + S[2]; ans = v[0] + v[1] + v[2]; }
-      else { do { v = distinctInts(r, 3, 2, 3 + d * 2); } while (v[0] * v[1] <= v[2]); big = S[0] + ' × ' + S[1] + ' − ' + S[2]; ans = v[0] * v[1] - v[2]; }
-      return { ask: S[0] + ' = ' + v[0] + ',  ' + S[1] + ' = ' + v[1] + ',  ' + S[2] + ' = ' + v[2] + '.  Work out:', big: big, kind: 'num', answer: String(ans) };
-    }),
-    V('steps', 1, 8, function (r, d) {
-      var n = 2 + Math.floor(d / 3), x = r.int(2, 9), start = x, txt = [], i, op, k, tries;
-      for (i = 0; i < n; i++) {
-        for (tries = 0; tries < 50; tries++) {
-          op = r.pick(['double', 'add', 'sub', 'triple'].concat(x % 2 === 0 ? ['half'] : [], d >= 6 && x <= 12 ? ['square'] : []));
-          k = r.int(2, 9);
-          if (op === 'sub' && x - k < 1) continue;
-          if ((op === 'double' || op === 'triple') && x > 60) continue;
-          break;
-        }
-        if (tries === 50) op = 'add';
-        if (op === 'double') { x *= 2; txt.push('Double it'); }
-        else if (op === 'triple') { x *= 3; txt.push('Triple it'); }
-        else if (op === 'half') { x /= 2; txt.push('Halve it'); }
-        else if (op === 'square') { x *= x; txt.push('Square it'); }
-        else if (op === 'add') { x += k; txt.push('Add ' + k); }
-        else { x -= k; txt.push('Subtract ' + k); }
-      }
-      return { ask: 'Start with ' + start + '. ' + txt.join('. ') + '. What do you get?', big: '', kind: 'num', answer: String(x) };
-    }),
-    V('wordops', 2, 8, function (r, d) {
-      var w = r.pick(POOL.filter(function (x) { return x.length >= 5 && x.length <= 7; })), n = d <= 4 ? 2 : 3, cur = w, said = [], i, op;
-      var OPS = {
-        reverse: { t: 'reverse it', f: rev }, dropfirst: { t: 'drop the first letter', f: function (s) { return s.slice(1); } },
-        droplast: { t: 'drop the last letter', f: function (s) { return s.slice(0, -1); } }, firstend: { t: 'move the first letter to the end', f: function (s) { return s.slice(1) + s[0]; } }
-      };
-      var names = r.shuffle(Object.keys(OPS));
-      for (i = 0; i < n; i++) { op = OPS[names[i]]; said.push(op.t); cur = op.f(cur); }
-      var txt = said.join(', then ');
-      return { ask: 'Take the word below: ' + txt + '. What do you end up with?', big: w, kind: 'text', answer: cur, cls: 'word' };
-    }),
-    V('digitcode', 2, 7, function (r, d) {
-      var k = r.int(1, 4), len = 3 + Math.min(3, Math.floor(d / 2)), s = '', out = '', i, x;
-      for (i = 0; i < len; i++) { x = r.int(0, 9); s += x; out += (x + k) % 10; }
-      return { ask: 'A code adds ' + k + ' to every digit (9 + ' + k + ' wraps round to ' + ((9 + k) % 10) + '). Write this number in code:', big: s, kind: 'num', answer: out };
-    })
-  ];
-
-
   /* ================= TYPING (new category) ================= */
   var PHRASE_WORDS = ['the', 'and', 'sun', 'red', 'big', 'run', 'cold', 'warm', 'fast', 'blue', 'jump', 'tree', 'rain', 'gold', 'milk', 'door',
     'swim', 'cake', 'wind', 'path', 'bold', 'calm', 'quick', 'brown', 'green', 'river', 'light', 'storm', 'happy', 'lucky', 'under', 'above', 'track'];
@@ -610,22 +529,13 @@
     }
     return Object.keys(preds).length !== 1;
   }
-  function cipherAmbiguous(examples, target, ans) {
-    var preds = {}, k;
-    for (k = 1; k <= 25; k++) {
-      if (examples.every(function (e) { return shiftWord(e[0], k) === e[1]; })) preds[shiftWord(target, k)] = 1;
-    }
-    if (examples.every(function (e) { return atbash(e[0]) === e[1]; })) preds[atbash(target)] = 1;
-    return Object.keys(preds).length !== 1 || !preds[ans];
-  }
-
   /* ---------- public API ---------- */
-  X.variants = { maths: maths, memory: memory, logic: logic, word: word, space: space, code: code, typing: typing };
-  X.NEW_KEYS = ['space', 'code', 'typing'];
-  X.TYPES = { space: { n: 'Spatial', c: 'var(--space)' }, code: { n: 'Code', c: 'var(--code)' }, typing: { n: 'Typing', c: 'var(--typing)' } };
-  X.CSS = ':root{--space:#b794ff;--code:#ff8ad8;--typing:#6fa8ff}' +
-    ':root[data-skin="neon"]{--space:#b57bff;--code:#ff6ad5;--typing:#5a9bff}' +
-    ':root[data-skin="paper"]{--space:#6b3fc0;--code:#b4247f;--typing:#1f5fc4}';
+  X.variants = { maths: maths, memory: memory, logic: logic, word: word, space: space, typing: typing };
+  X.NEW_KEYS = ['space', 'typing'];
+  X.TYPES = { space: { n: 'Spatial', c: 'var(--space)' }, typing: { n: 'Typing', c: 'var(--typing)' } };
+  X.CSS = ':root{--space:#b794ff;--typing:#6fa8ff}' +
+    ':root[data-skin="neon"]{--space:#b57bff;--typing:#5a9bff}' +
+    ':root[data-skin="paper"]{--space:#6b3fc0;--typing:#1f5fc4}';
 
   function eligible(list, d) {
     var pool = list.filter(function (v) { return d >= v.min && d <= v.max; });
@@ -648,7 +558,7 @@
       };
     });
   };
-  X._internal = { oddIndex: oddIndex, oddInfo: oddInfo, matrixAmbiguous: matrixAmbiguous, cipherAmbiguous: cipherAmbiguous, POOL: POOL, SHORT: SHORT, PALINS: PALINS, ANAGRAMS: ANAGRAMS, shiftWord: shiftWord, atbash: atbash };
+  X._internal = { oddIndex: oddIndex, oddInfo: oddInfo, matrixAmbiguous: matrixAmbiguous, POOL: POOL, SHORT: SHORT, PALINS: PALINS, ANAGRAMS: ANAGRAMS };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = X; else root.SwitchQuestions = X;
 })(typeof window !== 'undefined' ? window : this);

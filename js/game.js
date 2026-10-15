@@ -1,8 +1,8 @@
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
-var TYPES={maths:{n:'Maths',c:'var(--maths)'},memory:{n:'Memory',c:'var(--memory)'},logic:{n:'Logic',c:'var(--logic)'},word:{n:'Words',c:'var(--word)'},space:{n:'Spatial',c:'var(--space)'},code:{n:'Code',c:'var(--code)'},typing:{n:'Typing',c:'var(--typing)'}};
-var KEYS=['maths','memory','logic','word','space','code','typing'];
+var TYPES={maths:{n:'Maths',c:'var(--maths)'},memory:{n:'Memory',c:'var(--memory)'},logic:{n:'Logic',c:'var(--logic)'},word:{n:'Words',c:'var(--word)'},space:{n:'Spatial',c:'var(--space)'},typing:{n:'Typing',c:'var(--typing)'}};
+var KEYS=['maths','memory','logic','word','space','typing'];
 var VIS=window.SwitchVisuals;
 function ico(k){return VIS?VIS.icon(k):''}
 var RUN=90, PENALTY=2;

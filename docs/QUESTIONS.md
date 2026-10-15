@@ -2,7 +2,7 @@
 
 Files in this folder:
 
-- `switch-questions.js`: the drop-in module. 58 new puzzle variants, spread over the four existing categories plus three new ones (Spatial, Code and Typing).
+- `switch-questions.js`: the drop-in module. 50 new puzzle variants, spread over the four existing categories plus two new ones (Spatial and Typing).
 - `test-questions.js`: an independent answer checker. It re-solves every generated question by a different route and checks the shape the game needs.
 - `README.md`: this file.
 
@@ -15,10 +15,9 @@ Written against the game version that has hints (3 per run), and tested with the
 | Maths | 13 | missing factor, double/half/triple, shop change, rounding, digit sum, squares and roots, remainders, fractions of a number, averages, elapsed minutes, "which product is biggest", negatives in the middle of a sum, order of operations |
 | Memory | 8 | count one symbol in a flash, difference of two numbers, biggest/smallest, letters (and letters backwards), digit-letter pairs, the word that appeared twice, Nth word, running total |
 | Logic | 8 | letter sequences, harder number sequences (shrinking steps, alternating operations), number grids ("every row follows the same rule"), input-output machines, yes/no/can't-tell reasoning, symbol equations, age chains, word odd-one-out |
-| Words | 9 | Nth letter, alphabetical first/last, remove the vowels, palindrome, double letter, longest word, count a letter, alphabet shifts and letter sums, find the anagram |
+| Words | 8 | Nth letter, alphabetical first/last, remove the vowels, palindrome, double letter, longest word, count a letter, find the anagram |
 | Spatial (new) | 8 | compass turns, grid paths, arrow rotations, dice, mirrored clocks, painted blocks, count squares/rectangles in a grid, count routes across a grid |
 | Typing (new) | 5 | speed typing: copy a word, a short phrase, a code of letters and digits, a long number, or a word twice with a space. The game's existing speed bonus already rewards fast answers, and a wrong key at the full length counts as a miss |
-| Code (new) | 7 | shift cipher forwards and back, crack the code from two examples (shift or mirror alphabet), symbol values, follow the steps, word operations, digit codes |
 
 Existing questions keep the same visual style (same card, same big text, same sequence layout). All of the new ones are worked out, none rely on facts someone could look up.
 
@@ -36,17 +35,17 @@ SwitchQuestions.install(GEN);          // optional: install(GEN,{mix:0.6})
 
 Every new question also carries `variant` (for example `"logic.matrix"`), handy for debugging and analytics.
 
-### 2. The three new categories
+### 2. The two new categories
 
-`install` also adds `GEN.space`, `GEN.code` and `GEN.typing`. For the game to offer them:
+`install` also adds `GEN.space` and `GEN.typing`. For the game to offer them:
 
-1. In `TYPES` add `space`, `code` and `typing` from `SwitchQuestions.TYPES` (or copy the values: `{n:'Spatial',c:'var(--space)'}` and `{n:'Code',c:'var(--code)'}`, `{n:'Typing',c:'var(--typing)'}`).
-2. `KEYS=['maths','memory','logic','word','space','code','typing']`.
+1. In `TYPES` add `space` and `typing` from `SwitchQuestions.TYPES` (or copy the values: `{n:'Spatial',c:'var(--space)'}` and `{n:'Code',c:'var(--code)'}`, `{n:'Typing',c:'var(--typing)'}`).
+2. `KEYS=['maths','memory','logic','word','space','typing']`.
 3. Add the colours to the stylesheet: `document.head.insertAdjacentHTML('beforeend','<style>'+SwitchQuestions.CSS+'</style>')` or paste `SwitchQuestions.CSS` into the CSS block (it covers the Neon and Paper skins).
-4. In `startRun`, `per:{...}` lists the four types by hand. Add `space`, `code` and `typing` entries, each `{ok:0,bad:0}`.
+4. In `startRun`, `per:{...}` lists the four types by hand. Add `space` and `typing` entries, each `{ok:0,bad:0}`.
 5. Layout: `.types` and `.ratings` use 4 columns. Change to `repeat(3,1fr)` (two rows of three, or three rows with Typing) or `repeat(7,1fr)` is too tight, so use 3 or 4 for the type chips, and the ratings to `repeat(3,1fr)` (the `max-width:420px` rule can stay at 2).
 6. Badge `all` ("Right in every type", 2 per type) gets much harder with 6 types. Suggest keeping it at the original four types: `['maths','memory','logic','word'].every(...)`.
-7. The Hearth "Game visual polish" layer picks a glyph per type for the switch curtain. Suggested glyphs: Spatial `↑ → ↓`, Code `A → D`, Typing `⌨ abc`.
+7. The Hearth "Game visual polish" layer picks a glyph per type for the switch curtain. Suggested glyphs: Spatial `↑ → ↓`, Typing `⌨ abc`.
 8. Saved stats: `db.stats` is filled from `KEYS` on load, so new types appear automatically for existing players.
 
 If you would rather ship the new categories later, skip step 2 and nothing changes: `GEN.space` and `GEN.code` are simply never drawn.
@@ -72,8 +71,7 @@ If you would rather ship the new categories later, skip step 2 and nothing chang
 2. **Ambiguity guards.**
    - Sequences: every common rule family (arithmetic, geometric, quadratic, Fibonacci-style, alternating operations, interleaved, powers) that fits the shown terms must predict the same next term.
    - Number grids: every simple rule (a×a + b, a×b + c, and weighted sums up to ±4) that fits the two complete rows must give the same answer in the third.
-   - Crack-the-code: every shift and the mirror alphabet are tried against the two examples; only the intended one may fit.
-   - Odd word out: every feature people look for (length, double letters, first/last letter, starts/ends with a vowel, palindrome, alphabetical letters, vowel count, rare letters) is checked, and the set is only used if every feature that splits it 3-vs-1 picks the same word.
+    - Odd word out: every feature people look for (length, double letters, first/last letter, starts/ends with a vowel, palindrome, alphabetical letters, vowel count, rare letters) is checked, and the set is only used if every feature that splits it 3-vs-1 picks the same word.
    - Input-output machines always show three examples, which fixes a straight-line or squared rule exactly.
 3. **Typing:** the answer is exactly what is shown (lowercase, single spaces). The input autosubmits on the last correct character, so there is no Enter key.
 4. **Shape rules the game needs.** Choice questions have 3-4 distinct options and the answer appears exactly once; typed answers are non-negative digits or lowercase letters; flash times are between 0.8 and 6 seconds; text lengths fit the card.
@@ -91,4 +89,10 @@ These come from the current game code, not from the new module. They are reporte
 
 ## Pictures (`visual` field)
 
-Spatial and Code questions that have a picture carry `visual:{kind,...}` in the shapes from `design/SPEC.md` (Revision 6): `compass` (turns), `arrow` (rotations), `dice` (top face), `clock` (the real clock; the question asks for its mirror image), `cube` (block sizes), `grid` (routes, plus plain grids for the square and rectangle counts), `strip` (shift ciphers) and `pairs` (crack-the-code examples). Path questions have no picture. The checker confirms each picture matches its question text. For backward shifts the strip gets `k = 26 − steps` with `back:true`, as in the design demo, so its label reads "Back 25" for a 1-step shift; the visuals thread may want to show the real step count.
+Spatial questions that have a picture carry `visual:{kind,...}` in the shapes from `design/SPEC.md` (Revision 6): `compass` (turns), `arrow` (rotations), `dice` (top face), `clock` (the real clock; the question asks for its mirror image), `cube` (block sizes), `grid` (routes, plus plain grids for the square and rectangle counts), (no cipher pictures any more). Path questions have no picture. The checker confirms each picture matches its question text.
+
+## Changes on Aaron's request
+
+- Code category removed. Typing stays as its own category.
+- Words no longer has any alphabet-position questions (letter sums like I + N, "3 steps after M").
+- Note: Logic still has letter sequences (A, C, E, G, _) and Words has "alphabetical first/last", which lean on knowing the alphabet order. Say if those should go too.
