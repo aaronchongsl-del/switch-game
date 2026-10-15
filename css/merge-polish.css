@@ -1,0 +1,31 @@
+/* Final polish for the merged game (Revision 7). Append after visuals.css. */
+
+/* 1. Pin the answer area to the bottom of the card, and let the picture use the free space (no dead gap under compasses, memory digits or typing words) */
+.stage #inputZone{margin-top:auto}
+.stage .vis{flex:1;min-height:0}
+.vsvg{max-width:min(230px,56vw)}
+.vgridsvg{max-width:min(250px,60vw)}
+
+/* 2. Typing: the word you still have to type is easy to read (was grey at 60% opacity) */
+.tc{color:var(--text);opacity:.55}
+.tc.ok{opacity:1}
+.big.typed{font-size:clamp(30px,9.4vw,46px)}
+.ans::placeholder{color:var(--mute);opacity:.6}
+
+/* 3. Action area: Skip and Hint stay big (thumb targets); Restart and Quit shrink to quiet text buttons */
+.skipbar small{white-space:nowrap}
+.actrow+.actrow{gap:6px}
+.skipbar.sm{flex-wrap:nowrap;white-space:nowrap;border:0;background:transparent;padding:6px 4px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.skipbar.sm kbd{border-color:var(--line);font-size:10px;padding:3px 6px}
+.skipbar.sm:hover{color:var(--text)}
+.skipbar:focus:not(:focus-visible){outline:0}
+
+/* 4. Results: Restart and Home side by side, untouched types dimmed */
+#result .modes{grid-template-columns:1fr 1fr}
+#result .modes .btn{font-size:18px;padding:14px}
+.row.zero{opacity:.35}
+.row.zero .bar i{display:none}
+
+/* 5. Locked categories: padlock corner and clearer label */
+.cat.locked,.rate.locked{position:relative}
+.cat.locked::after,.rate.locked::after{content:"";position:absolute;top:6px;right:6px;width:12px;height:12px;background:currentColor;opacity:.7;-webkit-mask:var(--lock) center/contain no-repeat;mask:var(--lock) center/contain no-repeat;--lock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0110 0v3h2v11H5V10h2zm2 0h6V7a3 3 0 00-6 0v3z'/%3E%3C/svg%3E")}

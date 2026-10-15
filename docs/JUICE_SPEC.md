@@ -142,3 +142,22 @@ Files: `visuals.js` (icons, puzzle pictures, typing card) and `visuals.css` are 
 - **Merge order:** add `visuals.css` and `visuals.js` next to the juice files, add the three colour tokens per look (use `themes.css`), then follow `questions/README.md` step 2.
 
 Strip label: `strip` shows the real step count. Pass `k` as the forward offset (a back shift of 1 is `k:25,back:true`) or give `steps` directly; the label then reads "Back 1".
+
+## Revision 7: final visual review of the merged game
+
+Reviewed the live merged preview (six categories, level unlocks) on a 420 px phone. Everything below is in `merge-polish.css`: append it after `visuals.css`. Two items need a small JS change.
+
+What already works: seven-to-six chip grid reads clearly, locked chips are greyed with "Level N", time bar, typing card, icons and colours all carry over, results page order is right.
+
+Fixes (CSS only):
+1. **Dead space inside the card.** Compasses, dice and memory digits left a 100 to 150 px gap above the answer. The answer area is now pinned to the card bottom (`#inputZone{margin-top:auto}`) and the picture is centred in the free space and a little larger.
+2. **Typing word was too faint.** Untyped letters were grey at 60 percent. Now full text colour at 55 percent, so the target word reads clearly, and ticks to green or red as before. Slightly larger type size and a muted placeholder in the answer box.
+3. **Action area too heavy.** Four dashed boxes took more room than the question. Skip and Hint stay big (thumb targets). Restart run and Quit run become quiet text buttons with the key hint, no dashed box.
+4. **Results.** Restart and Home sit side by side so the score, level bar and by-type bars stay visible without scrolling. Rows for types you did not play are dimmed (`.row.zero`, no bar).
+5. **Locked categories** get a small padlock in the corner of the start-screen chip and the skill-rating tile.
+
+Needs a small JS change in the game thread:
+- In the results renderer add the class `zero` to a by-type row when that type has 0 of 0 answers (or hide locked types entirely).
+- Optional: on the start screen the Play button is the only bright element, so keep Daily run quiet as it is; consider moving "Look and sound" below Badges since new players never use it before level 3.
+
+Not changed: skins and sound packs stay level-locked as built. All five looks keep their colours for Spatial and Typing from Revision 6.

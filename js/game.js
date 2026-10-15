@@ -513,7 +513,7 @@ function finish(){
   $('rLvl').textContent='Level '+lvBefore+' · '+rankName(lvBefore);$('rXp').textContent=xpBefore+' XP';
   var xb=$('rXpBar');xb.style.transition='none';xb.style.width=Math.round(oldPct*100)+'%';
   $('rTypes').innerHTML=KEYS.filter(function(k){return unlocked(k)||g.per[k].ok+g.per[k].bad>0}).map(function(k,i){var p=g.per[k],n=p.ok+p.bad,pc=n?Math.round(p.ok/n*100):0;
-    return '<div class="row" style="--c:'+TYPES[k].c+';--i:'+i+'"><span style="color:'+TYPES[k].c+';display:flex;gap:6px;align-items:center">'+ico(k)+TYPES[k].n+'</span><div class="bar"><i style="width:'+(Juice.enabled?0:pc)+'%" data-w="'+pc+'"></i></div><span>'+p.ok+'/'+n+'</span></div>'}).join('');
+    return '<div class="row'+(n?'':' zero')+'" style="--c:'+TYPES[k].c+';--i:'+i+'"><span style="color:'+TYPES[k].c+';display:flex;gap:6px;align-items:center">'+ico(k)+TYPES[k].n+'</span><div class="bar"><i style="width:'+(Juice.enabled?0:pc)+'%" data-w="'+pc+'"></i></div><span>'+p.ok+'/'+n+'</span></div>'}).join('');
   var chips=['+'+gain+' XP'];
   if(g.bestWpm)chips.push('Fastest typing '+g.bestWpm+' WPM');
   if(g.mode==='daily')chips.push('Daily streak: '+streakNow()+' day'+(streakNow()===1?'':'s'));
