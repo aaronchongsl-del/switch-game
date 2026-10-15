@@ -8,7 +8,7 @@ function rpc(name,body){
     method:'POST',
     headers:{'Content-Type':'application/json',apikey:C.supabaseKey,Authorization:'Bearer '+C.supabaseKey},
     body:JSON.stringify(body)
-  }).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+  }).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text().then(function(t){return t?JSON.parse(t):null})});
 }
 window.Board={
   enabled:on,
