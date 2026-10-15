@@ -320,7 +320,9 @@ function drawType(){
   if(g.bag[0]===g.type&&g.bag.length>1)g.bag.push(g.bag.shift());
   return g.bag.shift();
 }
-function diff(){return Math.min(8,1+Math.floor(g.ok/4)+(g.hardLeft>0?2:0))}
+/* climbs one level every 5 right answers up to 8 (35 right), then memory flashes keep shrinking so it never plateaus */
+function diff(){return Math.min(8,1+Math.floor(g.ok/5)+(g.hardLeft>0?2:0))}
+function squeeze(){return Math.max(.45,1-Math.max(0,g.ok-35)*.02)}
 function mult(s){return 1+Math.min(Math.max(s-1,0),10)*.1}
 /* streak milestones and surprise events wait here and play as a slide between questions, with the timer paused */
 function runPending(next){
@@ -337,6 +339,7 @@ function nextQ(){
   g.blockLeft--;
   if(g.focus&&g.qi>0)changed=false;
   var r=rngFrom(g.seed+':q'+g.qi),q=GEN[g.type](r,diff());
+  if(q.flash)q.flash.ms=Math.round(q.flash.ms*squeeze());
   q.type=g.type;q.hard=g.hardLeft>0;if(g.hardLeft>0)g.hardLeft--;g.q=q;g.qi++;
   var T=TYPES[g.type];
   stage.style.setProperty('--c',T.c);$('ttype').innerHTML=ico(g.type)+esc(T.n);$('qn').textContent='Q'+g.qi;
