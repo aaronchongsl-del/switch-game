@@ -1,0 +1,135 @@
+/* Switch juice layer: CSS. Drop-in, uses only the game's existing tokens
+   (--c on .stage, --ink, --panel, --line, --text, --good, --bad, --mono) so it follows every skin.
+   Pairs with juice.js. Reduced motion is handled at the bottom. */
+:root{--jx-ease:cubic-bezier(.2,.9,.25,1.25);--jx-snap:cubic-bezier(.7,0,.2,1)}
+
+/* full-screen layers created by juice.js */
+.jx-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.jx-flash{position:fixed;inset:0;pointer-events:none;z-index:49;opacity:0}
+.jx-flash.go{animation:jx-flash .4s ease-out}
+@keyframes jx-flash{0%{opacity:var(--a,.2)}100%{opacity:0}}
+.jx-vig{position:fixed;inset:0;pointer-events:none;z-index:48;opacity:0;box-shadow:inset 0 0 110px 14px color-mix(in srgb,var(--bad) 60%,transparent)}
+.jx-vig.on{animation:jx-vig 1s ease-in-out infinite}
+@keyframes jx-vig{0%,100%{opacity:.1}50%{opacity:.85}}
+
+/* heat: the stage glows and its border thickens as the streak builds (set --heat 0..1 from JS) */
+.stage{--heat:0;box-shadow:0 0 calc(var(--heat)*40px) calc(var(--heat)*5px) color-mix(in srgb,var(--c) calc(var(--heat)*70%),transparent)}
+.stage.jx-hot{background:linear-gradient(180deg,color-mix(in srgb,var(--c) calc(var(--heat)*10%),var(--panel)),var(--panel) 70%)}
+
+/* motion primitives */
+.jx-shake{animation:jx-shake .4s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes jx-shake{10%,90%{transform:translate3d(calc(var(--amp,6px)*-.2),0,0)}20%,80%{transform:translate3d(calc(var(--amp,6px)*.4),0,0)}30%,50%,70%{transform:translate3d(calc(var(--amp,6px)*-.8),0,0)}40%,60%{transform:translate3d(var(--amp,6px),0,0)}}
+.jx-thump{animation:jx-thump .3s var(--jx-ease)}
+@keyframes jx-thump{0%{transform:scale(1)}30%{transform:scale(var(--s,1.025))}100%{transform:scale(1)}}
+.jx-bump{animation:jx-bump .34s var(--jx-ease);display:inline-block}
+@keyframes jx-bump{0%{transform:scale(1)}35%{transform:scale(var(--s,1.4))}100%{transform:scale(1)}}
+.jx-ring{position:absolute;pointer-events:none;border:3px solid var(--c);border-radius:50%;width:40px;height:40px;margin:-20px 0 0 -20px;animation:jx-ring .55s ease-out forwards}
+@keyframes jx-ring{0%{transform:scale(.2);opacity:.9}100%{transform:scale(var(--r,6));opacity:0}}
+
+/* floating score pops and callouts, inside .stage */
+.jx-pop{position:absolute;pointer-events:none;z-index:4;font:800 clamp(22px,6vw,30px)/1 var(--mono);color:var(--c);white-space:nowrap;text-shadow:0 2px 0 var(--ink);transform:translate(-50%,0);animation:jx-pop .85s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes jx-pop{0%{opacity:0;transform:translate(-50%,10px) scale(.5)}18%{opacity:1;transform:translate(-50%,-8px) scale(1.15)}35%{transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
+.jx-pop.bad{color:var(--bad)}
+/* between-questions slide (streak milestones, surprise events). Covers the card; the timer is paused while it shows. */
+.jx-slide{position:relative;z-index:7;border:2px solid var(--c);background:var(--slide-bg,var(--panel));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:22px;cursor:pointer;overflow:hidden;box-shadow:0 0 38px color-mix(in srgb,var(--c) 40%,transparent);animation:jx-slidein .28s cubic-bezier(.2,1.7,.4,1) both}
+.jx-slide .s-k{font:700 12px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+.jx-slide .s-t{font:800 clamp(46px,15vw,88px)/.92 var(--display);letter-spacing:-.03em;text-transform:uppercase;color:var(--c);text-wrap:balance;text-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
+.jx-slide .s-sub{font:700 14px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
+.jx-slide .s-chip{background:var(--c);color:var(--ink);font:800 16px/1 var(--mono);letter-spacing:.06em;padding:9px 16px;border-radius:99px}
+.jx-slide .s-hint{position:absolute;bottom:12px;font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);opacity:.7}
+.jx-slide.event{background:var(--c)}
+.jx-slide.event .s-k,.jx-slide.event .s-sub,.jx-slide.event .s-hint{color:var(--ink)}
+.jx-slide.event .s-t{color:var(--ink);text-shadow:none}
+.jx-slide.event .s-chip{background:var(--ink);color:var(--c)}
+.jx-slide.out{animation:jx-slideout .17s ease-in forwards}
+@keyframes jx-slidein{from{opacity:0;transform:scale(.55) translateY(30px)}to{opacity:1;transform:none}}
+@keyframes jx-slideout{to{opacity:0;transform:scale(.92) translateY(-14px)}}
+.jx-slide .s-t{transform:rotate(-2deg);animation:jx-slamt .3s cubic-bezier(.2,1.5,.4,1) .04s both}
+@keyframes jx-slamt{from{transform:scale(2) rotate(-6deg);opacity:0}to{transform:rotate(-2deg);opacity:1}}
+
+/* combo meter: five pips fill toward the next milestone */
+.jx-pips{display:inline-flex;gap:4px;vertical-align:middle;margin-left:10px}
+.jx-pips i{width:16px;height:6px;border-radius:3px;background:var(--line);transition:background .12s,transform .12s}
+.jx-pips i.on{background:var(--c,var(--text));transform:scaleY(1.4)}
+.jx-pips.full i{animation:jx-pipfull .5s ease-out}
+@keyframes jx-pipfull{0%{transform:scaleY(2.4)}100%{transform:scaleY(1)}}
+
+/* score and time */
+.jx-score{display:inline-block;transform-origin:right center}
+.time.jx-lowtick{animation:jx-tick .5s var(--jx-ease)}
+@keyframes jx-tick{0%{transform:scale(1.35);color:var(--bad)}100%{transform:scale(1)}}
+.rail.jx-pulse{animation:jx-railpulse 1s ease-in-out infinite}
+@keyframes jx-railpulse{50%{box-shadow:0 0 14px color-mix(in srgb,var(--bad) 70%,transparent)}}
+.rail.jx-jolt{animation:jx-jolt .35s ease-out}
+@keyframes jx-jolt{30%{transform:scaleY(2.2)}100%{transform:scaleY(1)}}
+
+/* switch transition: type colour wipes across the card, name drops in letter by letter */
+.jx-curtain{position:absolute;inset:-2px;border-radius:14px;background:var(--c);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:5;pointer-events:none;clip-path:inset(0 100% 0 0)}
+.jx-curtain.go{animation:jx-curtain .66s var(--jx-snap) forwards}
+@keyframes jx-curtain{0%{clip-path:inset(0 100% 0 0)}28%,66%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 100%)}}
+.jx-curtain .k{font:700 12px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;opacity:.75}
+.jx-curtain b{display:flex;font:800 clamp(44px,15vw,84px)/1 var(--display);letter-spacing:-.03em;text-transform:uppercase}
+.jx-curtain b span{display:inline-block;animation:jx-letter .34s var(--jx-ease) both;animation-delay:calc(var(--i)*32ms + 110ms)}
+@keyframes jx-letter{from{transform:translateY(70%) rotate(10deg);opacity:0}to{transform:none;opacity:1}}
+.jx-curtain .glyph{font:700 22px/1 var(--mono);letter-spacing:.3em}
+.jx-stagein{animation:jx-stagein .35s var(--jx-ease) both}
+@keyframes jx-stagein{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+
+/* correct / wrong answer flavour: a colour wash over the card (pseudo-element, so it never fights the shake/thump on the card itself) */
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;z-index:3}
+.stage.jx-ok::after{background:color-mix(in srgb,var(--c) 24%,transparent);animation:jx-wash .38s ease-out}
+.stage.jx-bad::after{background:color-mix(in srgb,var(--bad) 26%,transparent);animation:jx-wash .45s ease-out}
+@keyframes jx-wash{0%{opacity:1}100%{opacity:0}}
+
+/* choice buttons: press feedback */
+.choice{transition:transform .08s,border-color .08s,background .08s}
+.choice:active{transform:scale(.97)}
+.choice.jx-right{border-color:var(--good);background:color-mix(in srgb,var(--good) 18%,var(--ink))}
+.choice.jx-wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--ink))}
+
+/* event strip pulses so surprise events feel like events */
+.evt.jx-in{animation:jx-evt .5s var(--jx-ease)}
+@keyframes jx-evt{from{transform:scaleX(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* results */
+.jx-in{animation:jx-stagein .45s var(--jx-ease) both;animation-delay:calc(var(--i,0)*90ms)}
+.row .bar i{transition:width .8s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i,0)*120ms + 300ms)}
+.final.jx-landed{animation:jx-thump .5s var(--jx-ease);--s:1.08}
+.jx-stamp{display:inline-block;align-self:flex-start;border:3px solid var(--good);color:var(--good);border-radius:8px;padding:8px 12px;font:800 16px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;transform:rotate(-5deg);animation:jx-slam .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes jx-slam{0%{transform:rotate(-14deg) scale(3);opacity:0}60%{opacity:1}100%{transform:rotate(-5deg) scale(1);opacity:1}}
+.xpbar{height:10px;background:var(--ink);border-radius:99px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:var(--text);border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+
+/* level-up takeover */
+.jx-level{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 82%,transparent);animation:jx-fade .25s ease-out;cursor:pointer}
+@keyframes jx-fade{from{opacity:0}}
+.jx-level .box{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:24px}
+.jx-level .k{font:700 13px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+.jx-level .n{font:800 clamp(88px,30vw,170px)/.85 var(--display);letter-spacing:-.05em;color:var(--text);animation:jx-lvl .7s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes jx-lvl{0%{transform:scale(.3) rotate(-10deg);opacity:0}100%{transform:none;opacity:1}}
+.jx-level .rank{font:800 clamp(24px,7vw,36px)/1 var(--display);animation:jx-stagein .5s .35s var(--jx-ease) both}
+.jx-level .unl{font:700 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);animation:jx-stagein .5s .55s var(--jx-ease) both}
+.jx-level .rainbow span:nth-child(4n+1){color:var(--maths)}.jx-level .rainbow span:nth-child(4n+2){color:var(--memory)}.jx-level .rainbow span:nth-child(4n+3){color:var(--logic)}.jx-level .rainbow span:nth-child(4n+4){color:var(--word)}
+
+/* logo drop-in on the start screen */
+.logo span{display:inline-block;animation:jx-logo .7s cubic-bezier(.2,1.5,.4,1) both;animation-delay:calc(var(--i)*70ms)}
+@keyframes jx-logo{from{transform:translateY(-60%) rotate(-12deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.logo span:hover{animation:jx-wiggle .4s ease-in-out}
+@keyframes jx-wiggle{30%{transform:translateY(-8%) rotate(-6deg)}60%{transform:translateY(0) rotate(4deg)}}
+.btn{transition:transform .12s var(--jx-ease)}
+.btn:active{transform:scale(.97)}
+
+@media (prefers-reduced-motion:reduce){
+  .jx-shake,.jx-thump,.jx-bump,.jx-ring,.jx-curtain.go,.jx-curtain b span,.jx-stagein,.jx-in,.jx-slide,.jx-slide .s-t,.jx-slide.out,.jx-stamp,.jx-level .n,.jx-level .rank,.jx-level .unl,.logo span,.stage.jx-ok::after,.stage.jx-bad::after,.time.jx-lowtick,.rail.jx-pulse,.rail.jx-jolt,.jx-vig.on,.jx-flash.go,.evt.jx-in{animation:none!important}
+  .jx-pop{animation:none;opacity:1;transform:translate(-50%,-30px)}
+  .jx-curtain.go{clip-path:inset(0 0 0 0)}
+  .row .bar i,.xpbar i{transition:none}
+}
+
+/* time bar: thick, drains left with a glowing edge, ten-second ticks, colour steps green > amber > red */
+.hud .rail{height:18px;position:relative;border-radius:99px}
+.hud .rail i{position:relative;transition:width .12s linear;transform:none!important;background:var(--good)}
+.hud .rail[data-zone="mid"] i{background:var(--maths)}
+.hud .rail.low i,.hud .rail[data-zone="low"] i{background:var(--bad)}
+.hud .rail i::after{content:"";position:absolute;right:0;top:0;bottom:0;width:6px;border-radius:99px;background:#fff;opacity:.85;box-shadow:0 0 10px 2px currentColor}
+.hud .rail::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(11.111% - 2px),rgba(0,0,0,.35) calc(11.111% - 2px) 11.111%)}

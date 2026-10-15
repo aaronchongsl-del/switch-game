@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Switch</title>
+<meta name="description" content="A 90-second speed game that switches between maths, memory, logic and wordplay.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@500;700&family=Lilita+One&family=Orbitron:wght@600;800;900&family=Share+Tech+Mono&family=Quicksand:wght@500;700&family=Patrick+Hand&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/juice.css">
+<link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+<div class="wrap">
+  <section id="start">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <h1 class="logo" aria-label="Switch"><span style="--i:0">S</span><span style="--i:1">W</span><span style="--i:2">I</span><span style="--i:3">T</span><span style="--i:4">C</span><span style="--i:5">H</span></h1>
+      <p class="tag">Ninety seconds. Maths, memory, logic and wordplay, one after another. The puzzle type changes every few answers, so your head has to change with it.</p>
+      <div class="types" aria-hidden="true">
+        <div style="background:var(--maths)">Maths</div><div style="background:var(--memory)">Memory</div><div style="background:var(--logic)">Logic</div><div style="background:var(--word)">Words</div><div style="background:var(--space)">Space</div><div style="background:var(--code)">Code</div>
+      </div>
+      <div class="modes">
+        <button class="btn" id="play">Play<small>90 seconds, new questions</small></button>
+        <button class="btn alt" id="daily">Daily run<small id="dailyNote">same for everyone today</small></button>
+      </div>
+      <div class="card">
+        <div class="lvl"><b id="lvl">Level 1</b><span class="label" id="xpTxt">0 XP</span></div>
+        <div class="bar"><i id="xpBar" style="width:0%"></i></div>
+        <div class="label">Best score <span class="mono" id="bestTxt" style="color:var(--text)">0</span></div>
+      </div>
+      <div class="card">
+        <div class="label">Today</div>
+        <p id="streakTxt" class="streakline"></p>
+        <ul class="goals" id="goals"></ul>
+      </div>
+      <div class="card">
+        <div class="label">Skill ratings (tap one to train it alone)</div>
+        <div class="ratings" id="ratings"></div>
+      </div>
+      <div class="card" id="optsCard"><div class="label">Look and sound</div><div id="optsBody"></div></div>
+      <div class="card">
+        <div class="label">Badges</div>
+        <div class="badges" id="badges"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="label">Leaderboard</div>
+          <div class="tabs"><button class="tab" data-b="all" aria-pressed="true">All time</button><button class="tab" data-b="today" aria-pressed="false">Today</button><button class="tab" data-b="daily" aria-pressed="false">Daily run</button></div>
+        </div>
+        <ol class="board" id="board"></ol>
+        <p class="note" id="boardNote">Scores are saved in this browser only.</p>
+      </div>
+      <p class="note">Keys: type the answer (it submits itself). On choices press 1-4 (numbers are listed smallest first). Enter skips for −2 seconds. Ctrl+Enter restarts a run and Esc quits it. Tab uses one of your 3 hints per run (50/50, first letter or digit, number gaps, memory replay) and halves that question's points. Surprise events during a run: double points, bonus time, hard rounds.</p>
+    </div>
+  </section>
+
+  <section id="game" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="hud"><div class="time" id="time">90</div><div class="rail" id="rail"><i id="railFill"></i></div><div class="score" id="score"><span class="jx-score" id="scoreN">0</span></div></div>
+      <div class="evt" id="evt" hidden><i id="evtFill"></i><span id="evtLbl">Double points</span><span id="evtTxt">10s</span></div>
+      <div class="streak"><span>Streak <b id="streak">0</b> &nbsp; x<b id="mult">1.0</b><span class="jx-pips" id="pips"></span></span><span id="qn">Q1</span></div>
+      <div class="stage" id="stage">
+        <span class="ttype" id="ttype">Maths</span>
+        <p class="ask" id="ask"></p>
+        <p class="hinttxt" id="hintTxt" hidden></p>
+        <div class="big" id="big"></div>
+        <div id="inputZone"></div>
+      </div>
+      <div class="actrow">
+        <button class="skipbar" id="skip"><span>Skip</span><kbd>Enter</kbd><small>−2 seconds</small></button>
+        <button class="skipbar" id="hint"><span>Hint</span><kbd>Tab</kbd><small id="hintsLeft">3 left</small></button>
+      </div>
+      <div class="actrow">
+        <button class="skipbar sm" id="restart"><span>Restart run</span><kbd>Ctrl+Enter</kbd></button>
+        <button class="skipbar sm" id="quit"><span>Quit run</span><kbd>Esc</kbd></button>
+      </div>
+      <div class="foot"><button class="link" id="openOpts">Look &amp; sound</button><span class="note">Choices: 1-4. Tab: hint (halves points).</span></div>
+    </div>
+  </section>
+
+  <section id="result" hidden>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <p class="label" id="rMode">Run complete</p>
+      <div class="final mono" id="rScore">0</div>
+      <span class="jx-stamp" id="rStamp" hidden>New best</span>
+      <p class="tag" id="rLine"></p>
+      <p class="tag" id="rBest"></p>
+      <div class="card"><div class="lvlrow"><b id="rLvl">Level 1</b><span class="label" id="rXp">0 XP</span></div><div class="xpbar"><i id="rXpBar"></i></div></div>
+      <div class="card"><div class="label">By puzzle type</div><div id="rTypes" style="display:flex;flex-direction:column;gap:12px"></div></div>
+      <div class="card"><div class="label">Earned</div><div class="earn" id="rEarn"></div></div>
+      <div class="card"><div class="label">Your answers</div><ol class="rvlist" id="rReview"></ol></div>
+      <div class="card" id="saveCard">
+        <div class="label">Put it on the board</div>
+        <form class="name" id="nameForm"><input id="nameIn" maxlength="14" placeholder="Your name" autocomplete="nickname"><button type="submit">Save</button></form>
+        <p class="note" id="saveStatus"></p>
+      </div>
+      <div class="modes"><button class="btn" id="again">Again<small>press Enter or R</small></button><button class="btn alt" id="home">Home<small>badges and board</small></button></div>
+      <button class="link" id="copy" style="align-self:flex-start">Copy score to share</button>
+    </div>
+  </section>
+</div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-label="Look and sound"><div class="panel"><div class="top"><b>Look and sound</b><button class="pill" id="closeOpts">Done</button></div><p class="note">The timer is paused while this is open.</p><div id="sheetBody"></div></div></div>
+<script src="js/config.js"></script>
+<script src="js/leaderboard.js"></script>
+<script src="js/juice.js"></script>
+<script src="js/questions.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
