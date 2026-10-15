@@ -137,3 +137,4 @@
 .jx-curtain .vi.big{width:56px;height:56px;stroke-width:1.8;animation:jx-icon .45s var(--jx-ease) .12s both}
 @keyframes jx-icon{from{transform:scale(.3) rotate(-25deg);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.jx-curtain .vi.big{animation:none}}
+.jx-pop.good{color:var(--good)}

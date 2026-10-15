@@ -201,6 +201,7 @@ J.correct=function(o){
   var c=cssColor(st,'--c'),pt=stagePoint(st);
   J.burst(pt.x,pt.y,c,8+Math.min(s,20)*1.4,4+Math.min(s,20)*.15);
   if(o.points!=null)pop(st,'+'+o.points);
+  if(o.timeEl&&o.time){var tr=o.timeEl.getBoundingClientRect(),ts=st.getBoundingClientRect();pop(st,'+'+o.time+'s','good',((tr.left+tr.width/2)-ts.left)/ts.width*100,6)}
   return{slide:milestone};
 };
 J.wrong=function(o){
